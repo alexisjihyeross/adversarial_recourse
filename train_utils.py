@@ -270,14 +270,14 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
         # get metrics
         precisions, recalls, thresholds = metrics.precision_recall_curve(y_true, y_prob_pred, pos_label=1.0)
         prec_thresholds = []
-        print("thresholds: ", thresholds)
-        print("precisions: ", precisions)
+        # print("thresholds: ", thresholds)
+        # print("precisions: ", precisions)
 
         # get thresholds for desired precisions
         for fp in fixed_precisions:
             th = thresholds[(np.abs(precisions - fp)).argmin()]
             rounded_th = round(th, 3)
-            prec_thresholds.append(th)
+            prec_thresholds.append(rounded_th)
 
         # FOR VAL
         flipped_epoch_by_threshold = [0 for a in prec_thresholds]
