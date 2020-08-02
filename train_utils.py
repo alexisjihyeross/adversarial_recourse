@@ -112,7 +112,8 @@ def write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, del
     text_file.close()   
     torch.save(model, best_model_name)
 
-def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, t, val_flipped, best_epoch):
+def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_val, \
+    t, val_flipped, best_epoch, num_negative, num_positive):
     """
     writes stats for model at threshold
 
@@ -121,22 +122,21 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     :param model: model
     :param X_train: train X data
     :param X_val: val X data
+    :param y_val: val y data
     :param t: threshold
     :param val_flipped: number of val instances for which adding calculated optimal delta led to a flip in prediction
     :param best_epoch: Boolean for whether this is epoch with best val loss
-
+    :param num_negative: number of negative val preds for this epoch
+    :param num_positive: number of positive val preds for this epoch
     """
-
-    num_negative = negative_epoch_by_threshold[t_idx]
-    num_positive = len(y_true) - num_negative
     
     # compute stats at this threshold
     val_y_pred = [0.0 if a < t else 1.0 for a in (model(X_val).detach().numpy())]
 
-    val_acc = np.sum(val_y_pred == y_true)/(y_true).shape[0]
-    val_f1 = f1_score(y_true, val_y_pred)
-    val_precision = precision_score(y_true, val_y_pred)
-    val_recall = recall_score(y_true, val_y_pred)
+    val_acc = np.sum(val_y_pred == y_val)/(y_true).shape[0]
+    val_f1 = f1_score(y_val, val_y_pred)
+    val_precision = precision_score(y_val, val_y_pred)
+    val_recall = recall_score(y_val, val_y_pred)
         
     train_preds = [0.0 if a < t else 1.0 for a in model(X_train).detach().numpy().ravel()]
 
@@ -148,7 +148,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     training_file.write("val precision: {}\n".format(round(val_precision, 3)))
     training_file.write("val recall: {}\n".format(round(val_recall, 3)))
     training_file.write("val num flipped: {}; {}/{}\n".format(round(val_flipped/num_negative, 3), val_flipped, num_negative))
-    training_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_true), 3), (val_flipped + num_positive), len(y_true)))
+    training_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_val), 3), (val_flipped + num_positive), len(y_val)))
     training_file.write("train accuracy: {}\n".format(round(np.sum((train_preds \
                  == ((y_train).detach().numpy()))/((y_train).detach().numpy()).shape[0]), 3)))
     training_file.close()
@@ -163,7 +163,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
         text_file.write("val precision: " + str(round(val_precision, 3)) + "\n")
         text_file.write("val recall: " + str(round(val_recall, 3)) + "\n")
         text_file.write("val num flipped: {}; {}/{}\n".format(round(val_flipped/num_negative, 3), val_flipped, num_negative))
-        text_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_true), 3), (val_flipped + num_positive), len(y_true)))
+        text_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_val), 3), (val_flipped + num_positive), len(y_val)))
         text_file.write("-------------------\n\n")
         text_file.close()
 
@@ -330,7 +330,10 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
         for t_idx, t in enumerate(best_thresholds):
             
             val_flipped = flipped_epoch_by_threshold[t_idx]
-            write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, t, val_flipped, best_epoch)
+            num_negative = negative_epoch_by_threshold[t_idx]
+            num_positive = len(y_true) - num_negative
+            write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_val, \
+                t, val_flipped, best_epoch, num_negative, num_positive)
 
                 
         training_file = open(train_file_name, "a")

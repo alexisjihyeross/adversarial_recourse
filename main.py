@@ -19,6 +19,7 @@ def run(data, actionable_indices, output_dir):
     weights = [0.0, 0.015, 0.025, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0]
     lr = 0.002
     delta_max = 0.5
+    fixed_precisions = [0.4, 0.5, 0.6, 0.7]
 
     for w in weights:
         print("WEIGHT: ", w)
@@ -32,6 +33,7 @@ def run(data, actionable_indices, output_dir):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, output_dir, \
-              recourse_loss_weight = w, num_epochs = 10, delta_max = delta_max, lr=lr)
+              recourse_loss_weight = w, num_epochs = 10, delta_max = delta_max, lr=lr, \
+              fixed_precisions = fixed_precisions)
 
 run(adult_data, actionable_indices, output_dir)
