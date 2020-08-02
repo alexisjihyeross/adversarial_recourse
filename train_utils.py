@@ -66,15 +66,18 @@ def combined_loss(model, output, target, delta, x, loss_fn, recourse_loss_weight
     bce_loss = torch.nn.BCELoss()
     loss = bce_loss(model(x + delta), torch.tensor([1.0]).float())
 
-    return recourse_loss_weight*loss + loss_fn(output, target)
+    return recourse_loss_weight * loss + loss_fn(output, target)
 
-def write_epoch_train_info(train_file_name, y_true, epoch_start):
+def write_epoch_train_info(train_file_name, y_true, epoch_start, maj_label, min_label, n):
     """
     writes epoch-specific training information to training log
 
     :param train_file_name: name of training log file
     :param y_true: labels for val data
     :param epoch_start: time when epoch started
+    :param maj_label: majority label (0 or 1)
+    :param min_label: minority label (0 or 1)
+    :param n: num epochs
 
     """
     maj_baseline_preds = (np.full(y_true.shape, maj_label)).ravel().tolist()
@@ -82,22 +85,24 @@ def write_epoch_train_info(train_file_name, y_true, epoch_start):
 
     training_file = open(train_file_name, "a")
     training_file.write("EPOCH: " + str(n) + "\n")
-    training_file.write("time for epoch: " + str((time.time() - epoch_start)/60) + " minutes" + "\n")
+    training_file.write("time for epoch: " + str(round((time.time() - epoch_start)/60, 3)) + " minutes" + "\n")
     training_file.write("val maj ({}) baseline accuracy: {}\n".format(maj_label, round(np.sum(np.full(y_true.shape, maj_label) == y_true)/(y_true).shape[0], 3)))
     training_file.write("val min ({}) baseline accuracy: {}\n".format(min_label, round(np.sum(np.full(y_true.shape, min_label) == y_true)/(y_true).shape[0], 3)))
     training_file.write("val min baseline f1: {}\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))        
     training_file.write("val maj baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), maj_baseline_preds), 3)))        
     training_file.close()
 
-def write_best_val_model(best_model_stats_file_name, lr, n, delta_max):
+def write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, delta_max, model):
     """
     writes params for model with best val loss
     saves model to file
 
     :param best_model_stats_file_name: name of best model stats file
+    :param best_model_name: name of file with best model parameters
     :param lr: learning rate
     :param n: num epochs
     :param delta_max: delta_max parameter
+    :param model: model to save
 
     """
     text_file = open(best_model_stats_file_name, "w")
@@ -105,17 +110,16 @@ def write_best_val_model(best_model_stats_file_name, lr, n, delta_max):
     text_file.write("num epochs: " + str(n) + "\n")
     text_file.write("delta max: " + str(delta_max) + "\n\n")
     text_file.close()   
+    torch.save(model, best_model_name)
 
-    torch.save(model, output_dir + str(recourse_loss_weight) + '_best_model.pt')
-
-def write_stats_at_threshold(train_file_name, best_model_stats_file_names, model, features, X_val, t, val_flipped, best_epoch):
+def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, t, val_flipped, best_epoch):
     """
     writes stats for model at threshold
 
     :param train_file_name: name of training log file
     :param best_model_stats_file_name: name of best model stats file
     :param model: model
-    :param features: train X data
+    :param X_train: train X data
     :param X_val: val X data
     :param t: threshold
     :param val_flipped: number of val instances for which adding calculated optimal delta led to a flip in prediction
@@ -135,7 +139,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_names, model
     val_precision = precision_score(y_true, val_y_pred)
     val_recall = recall_score(y_true, val_y_pred)
         
-    train_preds = [0.0 if a < t else 1.0 for a in model(features).detach().numpy().ravel()]
+    train_preds = [0.0 if a < t else 1.0 for a in model(X_train).detach().numpy().ravel()]
 
     training_file = open(train_file_name, "a")
     training_file.write("\nSTATS FOR threshold = " + str(t) + ":\n")
@@ -147,7 +151,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_names, model
     training_file.write("val num flipped: {}; {}/{}\n".format(round(val_flipped/num_negative, 3), val_flipped, num_negative))
     training_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_true), 3), (val_flipped + num_positive), len(y_true)))
     training_file.write("train accuracy: {}\n".format(round(np.sum((train_preds \
-                 == ((labels).detach().numpy()))/((labels).detach().numpy()).shape[0]), 3)))
+                 == ((y_train).detach().numpy()))/((y_train).detach().numpy()).shape[0]), 3)))
     training_file.close()
     
     if best_epoch:
@@ -164,20 +168,21 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_names, model
         text_file.write("-------------------\n\n")
         text_file.close()
 
-def train(model, features, labels, X_val, y_val, actionable_indices, output_dir, \
+def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir, \
           num_epochs = 12, delta_max = 1.0, batch_size = 32, lr = 0.002, \
           recourse_loss_weight=1, fixed_precisions = [0.5, 0.6, 0.7]):
     
     # train_file_name: name of train log file
     train_file_name = output_dir + str(recourse_loss_weight) + "_model_training_info.txt"
-    best_model_stats_file_name = output_dir + str(recourse_loss_weight) + "__best_model_info.txt"
+    best_model_stats_file_name = output_dir + str(recourse_loss_weight) + "_best_model_info.txt"
+    best_model_name = output_dir + str(recourse_loss_weight) + '_best_model.pt'
 
     # define optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # count the +/- labels to compute weight for minority class
-    pos_labels = torch.sum(labels).item()
-    neg_labels = (len(labels) - pos_labels)
+    pos_labels = torch.sum(y_train).item()
+    neg_labels = (len(y_train) - pos_labels)
 
     if pos_labels > neg_labels:
         minority_class_weight = pos_labels/neg_labels
@@ -191,7 +196,7 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
     # open training log file: 'output_dir/WEIGHT_model_training_info.txt'
     # write parameters
     training_file = open(train_file_name, "w")
-    training_file.write("len(train): " + str(len(labels)) + "\n")
+    training_file.write("len(train): " + str(len(y_train)) + "\n")
     training_file.write("train # pos: " + str(pos_labels) + "\n")
     training_file.write("train # neg: " + str(neg_labels) + "\n")
     training_file.write("len(val): " + str(len(y_val)) + "\n\n")
@@ -217,10 +222,10 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
         print("STARTING epoch: ", n)
     
 
-        for i in tqdm(range(len(labels))):
+        for i in tqdm(range(len(y_train))):
         
-            label = labels[i].item()
-            x = features[i]
+            label = y_train[i]
+            x = X_train[i]
             y_pred = model(x)
             
             # define loss function, upweight instance if minority class
@@ -229,7 +234,7 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
             
             # calculate the weighted combined loss
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
-            loss += combined_loss(model, y_pred, labels[i], delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
+            loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
                
 
             # take step in direction of gradient every (batch_size) # of instances
@@ -286,11 +291,12 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
             loss_fn = torch.nn.BCELoss(weight=weight)
                 
             x = X_val[i]              # data point
+            label = y_val[i]
             y_pred = model(x)
 
             # calculate the weighted combined loss
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
-            loss += combined_loss(model, y_pred, labels[i], delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
+            loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
 
             # add average batch loss to epoch_val_loss (val loss for epoch)
             if i % batch_size == 0:    
@@ -301,7 +307,7 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
         print("VAL LOSS: ", epoch_val_loss)
 
         # write training stats for epoch
-        write_epoch_train_info(train_file_name, y_true, epoch_start)
+        write_epoch_train_info(train_file_name, y_true, epoch_start, maj_label, min_label, n)
 
         # determine if this is the model with the best val loss
         # if so, save
@@ -309,7 +315,7 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
             best_epoch = True
             best_val_loss = epoch_val_loss
 
-            write_best_val_model(best_model_stats_file_name, lr, n, delta_max)
+            write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, delta_max, model)
 
             best_thresholds = prec_thresholds
             
@@ -325,7 +331,7 @@ def train(model, features, labels, X_val, y_val, actionable_indices, output_dir,
         for t_idx, t in enumerate(best_thresholds):
             
 
-            write_stats_at_threshold(train_file_name, best_model_stats_file_names, model, features, X_val, t, val_flipped, best_epoch)
+            write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, t, val_flipped, best_epoch)
 
                 
         training_file = open(train_file_name, "a")

@@ -24,8 +24,8 @@ def run(data, actionable_indices, output_dir):
         print("WEIGHT: ", w)
         model = Model(len(data['X_train'].values[0]))
         
-        torch_X_train = torch.from_numpy(data['X_train'].values).float()
-        torch_y_train = torch.from_numpy(data['y_train'].values).float()
+        torch_X_train = torch.from_numpy(data['X_train'].values[0:500]).float()
+        torch_y_train = torch.from_numpy(data['y_train'].values[0:500]).float()
         torch_X_val = torch.from_numpy(data['X_val'].values).float()
         torch_y_val = torch.from_numpy(data['y_val'].values).float()
         
