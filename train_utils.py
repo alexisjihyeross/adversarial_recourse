@@ -65,8 +65,7 @@ def combined_loss(model, output, target, delta, x, loss_fn, recourse_loss_weight
 
     bce_loss = torch.nn.BCELoss()
     loss = bce_loss(model(x + delta), torch.tensor([1.0]).float())
-
-    return recourse_loss_weight * loss + loss_fn(output, target)
+    return recourse_loss_weight * loss + loss_fn(output, target.reshape(1))
 
 def write_epoch_train_info(train_file_name, y_val, epoch_start, maj_label, min_label, n):
     """
@@ -140,9 +139,6 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
         
     train_preds = [0.0 if a < t else 1.0 for a in model(X_train).detach().numpy().ravel()]
 
-    print(np.unique(val_y_pred, return_counts = True))
-    print(num_negative)
-
     training_file = open(train_file_name, "a")
     training_file.write("\nSTATS FOR threshold = " + str(t) + ":\n")
     training_file.write("val preds: " + str(np.unique(val_y_pred, return_counts = True)) + "\n")
@@ -160,6 +156,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     
         text_file = open(best_model_stats_file_name, "a")
         text_file.write("THRESHOLD: " + str(t) + "\n")
+        text_file.write("val preds: " + str(np.unique(val_y_pred, return_counts = True)) + "\n")
         text_file.write("VAL PRECISION: " + str(round(val_precision, 3)) + "\n")
         text_file.write("val accuracy: " + str(round(val_acc, 3)) + "\n")
         text_file.write("val f1: " + str(round(val_f1, 3)) + "\n")
@@ -176,7 +173,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
     
     # train_file_name: name of train log file
     train_file_name = output_dir + str(recourse_loss_weight) + "_model_training_info.txt"
-    best_model_stats_file_name = output_dir + str(recourse_loss_weight) + "_best_model_info.txt"
+    best_model_stats_file_name = output_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
     best_model_name = output_dir + str(recourse_loss_weight) + '_best_model.pt'
 
     # define optimizer
