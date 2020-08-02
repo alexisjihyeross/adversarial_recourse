@@ -1,2 +1,3 @@
+pandas
 alibi==0.5.1
 numpy==1.19.1
