@@ -127,7 +127,6 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
 
     """
 
-    val_flipped = flipped_epoch_by_threshold[t_idx]
     num_negative = negative_epoch_by_threshold[t_idx]
     num_positive = len(y_true) - num_negative
     
@@ -330,7 +329,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
         # for each threshold, compute and record stats
         for t_idx, t in enumerate(best_thresholds):
             
-
+            val_flipped = flipped_epoch_by_threshold[t_idx]
             write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, t, val_flipped, best_epoch)
 
                 
