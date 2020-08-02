@@ -112,7 +112,7 @@ def write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, del
     text_file.close()   
     torch.save(model, best_model_name)
 
-def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_val, \
+def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
     t, val_flipped, best_epoch, num_negative, num_positive):
     """
     writes stats for model at threshold
@@ -343,7 +343,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
             val_flipped = flipped_epoch_by_threshold[t_idx]
             num_negative = negative_epoch_by_threshold[t_idx]
             num_positive = len(y_true) - num_negative
-            write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_val, \
+            write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
                 t, val_flipped, best_epoch, num_negative, num_positive)
 
                 
