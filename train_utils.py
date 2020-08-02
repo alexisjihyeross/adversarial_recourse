@@ -68,28 +68,28 @@ def combined_loss(model, output, target, delta, x, loss_fn, recourse_loss_weight
 
     return recourse_loss_weight * loss + loss_fn(output, target)
 
-def write_epoch_train_info(train_file_name, y_true, epoch_start, maj_label, min_label, n):
+def write_epoch_train_info(train_file_name, y_val, epoch_start, maj_label, min_label, n):
     """
     writes epoch-specific training information to training log
 
     :param train_file_name: name of training log file
-    :param y_true: labels for val data
+    :param y_val: labels for val data
     :param epoch_start: time when epoch started
     :param maj_label: majority label (0 or 1)
     :param min_label: minority label (0 or 1)
     :param n: num epochs
 
     """
-    maj_baseline_preds = (np.full(y_true.shape, maj_label)).ravel().tolist()
-    min_baseline_preds = (np.full(y_true.shape, min_label)).ravel().tolist()
+    maj_baseline_preds = (np.full(y_val.shape, maj_label)).ravel().tolist()
+    min_baseline_preds = (np.full(y_val.shape, min_label)).ravel().tolist()
 
     training_file = open(train_file_name, "a")
     training_file.write("EPOCH: " + str(n) + "\n")
     training_file.write("time for epoch: " + str(round((time.time() - epoch_start)/60, 3)) + " minutes" + "\n")
-    training_file.write("val maj ({}) baseline accuracy: {}\n".format(maj_label, round(np.sum(np.full(y_true.shape, maj_label) == y_true)/(y_true).shape[0], 3)))
-    training_file.write("val min ({}) baseline accuracy: {}\n".format(min_label, round(np.sum(np.full(y_true.shape, min_label) == y_true)/(y_true).shape[0], 3)))
-    training_file.write("val min baseline f1: {}\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))        
-    training_file.write("val maj baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), maj_baseline_preds), 3)))        
+    training_file.write("val maj ({}) baseline accuracy: {}\n".format(maj_label, round(np.sum(np.full(y_val.shape, maj_label) == y_val)/(y_val).shape[0], 3)))
+    training_file.write("val min ({}) baseline accuracy: {}\n".format(min_label, round(np.sum(np.full(y_val.shape, min_label) == y_val)/(y_val).shape[0], 3)))
+    training_file.write("val min baseline f1: {}\n".format(round(f1_score((y_val).ravel().tolist(), min_baseline_preds), 3)))        
+    training_file.write("val maj baseline f1: {}\n\n".format(round(f1_score((y_val).ravel().tolist(), maj_baseline_preds), 3)))        
     training_file.close()
 
 def write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, delta_max, model):
@@ -139,6 +139,9 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     val_recall = recall_score(y_val, val_y_pred)
         
     train_preds = [0.0 if a < t else 1.0 for a in model(X_train).detach().numpy().ravel()]
+
+    print(np.unique(val_y_pred, return_counts = True))
+    print(num_negative)
 
     training_file = open(train_file_name, "a")
     training_file.write("\nSTATS FOR threshold = " + str(t) + ":\n")
@@ -295,6 +298,14 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
 
             # calculate the weighted combined loss
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+
+            # for each threshold, keep track of negative predictions and flipped predictions
+            for t_idx, t in enumerate(prec_thresholds):
+                if y_pred.item() < t:
+                    negative_epoch_by_threshold[t_idx] += 1
+                    if model(x + delta_opt).detach().numpy() >= t:
+                        flipped_epoch_by_threshold[t_idx] += 1  
+
             loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
 
             # add average batch loss to epoch_val_loss (val loss for epoch)
