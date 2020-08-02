@@ -133,7 +133,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     # compute stats at this threshold
     val_y_pred = [0.0 if a < t else 1.0 for a in (model(X_val).detach().numpy())]
 
-    val_acc = np.sum(val_y_pred == y_val)/(y_true).shape[0]
+    val_acc = np.sum(val_y_pred == y_val)/(y_val).shape[0]
     val_f1 = f1_score(y_val, val_y_pred)
     val_precision = precision_score(y_val, val_y_pred)
     val_recall = recall_score(y_val, val_y_pred)
