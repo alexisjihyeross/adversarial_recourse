@@ -7,6 +7,8 @@ from sklearn import metrics
 from tqdm import tqdm
 import time
 import numpy as np
+import os
+import pandas as pd
 
 def calc_delta_opt(model, x, delta_max, actionable_indices):
     """
@@ -127,6 +129,11 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     :param best_epoch: Boolean for whether this is epoch with best val loss
     :param num_negative: number of negative val preds for this epoch
     :param num_positive: number of positive val preds for this epoch
+
+    :return: tuple (val_precision, val_recourse_proportion, val_flipped_proportion)
+        val_precision: precision at threshold t
+        val_recourse_proportion: portion of instances with recourse at threshold t
+        val_flipped_proportion: portion of flipped with recourse at threshold t
     """
     
     # compute stats at this threshold
@@ -151,7 +158,10 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     training_file.write("train accuracy: {}\n".format(round(np.sum((train_preds \
                  == ((y_train).detach().numpy()))/((y_train).detach().numpy()).shape[0]), 3)))
     training_file.close()
-    
+
+    val_flipped_proportion = round(val_flipped/num_negative, 3)
+    val_recourse_proportion = round((val_flipped + num_positive)/len(y_val), 3)
+
     if best_epoch:
     
         text_file = open(best_model_stats_file_name, "a")
@@ -162,19 +172,28 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
         text_file.write("val f1: " + str(round(val_f1, 3)) + "\n")
         text_file.write("val precision: " + str(round(val_precision, 3)) + "\n")
         text_file.write("val recall: " + str(round(val_recall, 3)) + "\n")
-        text_file.write("val num flipped: {}; {}/{}\n".format(round(val_flipped/num_negative, 3), val_flipped, num_negative))
-        text_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_val), 3), (val_flipped + num_positive), len(y_val)))
+        text_file.write("val num flipped: {}; {}/{}\n".format(val_flipped_proportion, val_flipped, num_negative))
+        text_file.write("val num with recourse: {}; {}/{}\n".format(val_recourse_proportion, (val_flipped + num_positive), len(y_val)))
         text_file.write("-------------------\n\n")
         text_file.close()
 
-def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir, \
+    return val_precision, val_recourse_proportion, val_flipped_proportion
+
+def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_dir, \
           num_epochs = 12, delta_max = 1.0, batch_size = 32, lr = 0.002, \
           recourse_loss_weight=1, fixed_precisions = [0.5, 0.6, 0.7]):
     
+    
+    weight_dir = experiment_dir + str(recourse_loss_weight) + '/'
+
+    if not os.path.exists(weight_dir):
+        os.makedirs(weight_dir)
+
     # train_file_name: name of train log file
-    train_file_name = output_dir + str(recourse_loss_weight) + "_model_training_info.txt"
-    best_model_stats_file_name = output_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
-    best_model_name = output_dir + str(recourse_loss_weight) + '_best_model.pt'
+    train_file_name = weight_dir + str(recourse_loss_weight) + "_model_training_info.txt"
+    best_model_stats_file_name = weight_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
+    best_model_name = weight_dir + str(recourse_loss_weight) + '_best_model.pt'
+    best_model_thresholds_file_name = weight_dir + str(recourse_loss_weight) + '_val_thresholds_info.csv'
 
     # define optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -192,7 +211,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
         maj_label = 0.0
         minority_class_weight = neg_labels/pos_labels    
 
-    # open training log file: 'output_dir/WEIGHT_model_training_info.txt'
+    # open training log file: 'weight_dir/WEIGHT_model_training_info.txt'
     # write parameters
     training_file = open(train_file_name, "w")
     training_file.write("len(train): " + str(len(y_train)) + "\n")
@@ -253,7 +272,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
         # val loss for epoch
         epoch_val_loss = 0
         
-        print("VAL EVALUATION: ")
+        print("EVALUATING ON VAL DATA")
 
         # y_true: (np.array) true labels for validation data
         # y_true_torch = (torch tensor) of true labels for validation data
@@ -279,7 +298,6 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
         # FOR VAL
         flipped_epoch_by_threshold = [0 for a in prec_thresholds]
         negative_epoch_by_threshold = [0 for a in prec_thresholds]     
-        
         
         # iterate through validation data:
 
@@ -311,7 +329,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
                 epoch_val_loss += loss
                 loss = 0
 
-        print("VAL LOSS: ", epoch_val_loss)
+        print("VAL LOSS: ", round(epoch_val_loss.item(), 3))
 
         # write training stats for epoch
         write_epoch_train_info(train_file_name, y_true, epoch_start, maj_label, min_label, n)
@@ -326,23 +344,41 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, output_dir,
 
             best_thresholds = prec_thresholds
             
-            thresholds_file = open(output_dir + str(recourse_loss_weight) + "_thresholds.txt", "w")
-            thresholds_file.writelines(["%s\n" % t for t in best_thresholds])
-            thresholds_file.close()
-            
         else:
             best_epoch = False
 
+        # all of these are validation and are ordered by thresholds
+        precision_by_threshold = []
+        recourse_proportion_by_threshold = []
+        flipped_proportion_by_threshold = []
 
         # for each threshold, compute and record stats
         for t_idx, t in enumerate(best_thresholds):
-            
+
             val_flipped = flipped_epoch_by_threshold[t_idx]
             num_negative = negative_epoch_by_threshold[t_idx]
             num_positive = len(y_true) - num_negative
-            write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
+            val_precision, val_recourse_proportion, val_flipped_proportion = write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
                 t, val_flipped, best_epoch, num_negative, num_positive)
 
+            precision_by_threshold.append(round(val_precision, 3))
+            recourse_proportion_by_threshold.append(val_recourse_proportion)
+            flipped_proportion_by_threshold.append(val_flipped_proportion)
+
+        # if the best epoch, write information about thresholds and various metrics
+        if best_epoch:
+            thresholds_data = {}
+
+            print(best_thresholds)
+
+            thresholds_data['thresholds'] = best_thresholds
+            thresholds_data['precisions'] = precision_by_threshold
+            thresholds_data['flipped_proportion'] = flipped_proportion_by_threshold
+            thresholds_data['recourse_proportion'] = recourse_proportion_by_threshold
+
+            thresholds_df = pd.DataFrame(data=thresholds_data)
+            thresholds_df['thresholds'] = thresholds_df['thresholds'].round(3)
+            thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
                 
         training_file = open(train_file_name, "a")
         training_file.write("-------------------\n\n")

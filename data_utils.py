@@ -136,3 +136,52 @@ def get_data(X, y, val_size = 0.1):
     
     return data    
 
+def write_data(data, output_dir):
+    """
+    Writes data dataframes to csv
+
+    :param data: data dictionary created by get_data
+    :param output_dir: output directory of experiment. a subdirectory 'data' will hold the data
+
+    """
+
+    data_dir = output_dir + "data/"
+
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    (data['X_train']).to_csv(data_dir + 'X_train.csv', index_label='index')
+    (data['X_val']).to_csv(data_dir + 'X_val.csv', index_label='index')
+    (data['X_test']).to_csv(data_dir + 'X_test.csv', index_label='index')
+
+
+    (data['y_train']).to_csv(data_dir + 'y_train.csv', index_label='index')
+    (data['y_val']).to_csv(data_dir + 'y_val.csv', index_label='index')
+    (data['y_test']).to_csv(data_dir + 'y_test.csv', index_label='index')
+
+def read_data(output_dir):
+    """
+    Reads data dataframes to csv
+
+    :param output_dir: output directory of experiment. will look inside a subdirectory 'data'
+    :returns: dictionary with data if files exist; None otherwise
+
+    """
+
+    data_dir = output_dir + "data/"
+
+    if not os.path.exists(data_dir):
+        return None
+
+    data = {}
+
+    (data['X_train']) = pd.read_csv(data_dir + 'X_train.csv', dtype=np.float64, index_col = 'index')
+    (data['X_val']) = pd.read_csv(data_dir + 'X_val.csv', dtype=np.float64, index_col = 'index')
+    (data['X_test']) = pd.read_csv(data_dir + 'X_test.csv', dtype=np.float64, index_col = 'index')
+
+    (data['y_train']) = pd.read_csv(data_dir + 'y_train.csv', dtype=np.float64, index_col = 'index')['label']
+    (data['y_val']) = pd.read_csv(data_dir + 'y_val.csv', dtype=np.float64, index_col = 'index')['label']
+    (data['y_test']) = pd.read_csv(data_dir + 'y_test.csv', dtype=np.float64, index_col = 'index')['label']
+
+    return data
+
