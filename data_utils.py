@@ -86,12 +86,13 @@ def process_bail_data():
     bail_df.loc[bail_df["FILE"] == 3, "JUNKY"] = np.nan
     bail_df.loc[bail_df["PRIORS"] == -9, "PRIORS"] = np.nan
     bail_df.loc[bail_df["SCHOOL"] == 0, "SCHOOL"] = np.nan
+    bail_df['label'] = bail_df['RECID']
 
     bail_df = bail_df.dropna()
     bail_X = bail_df.copy()
 
-    bail_y = bail_X['RECID']
-    bail_X = bail_X.drop(['RECID', 'TIME', 'FILE'], axis=1)
+    bail_y = bail_X['label']
+    bail_X = bail_X.drop(['RECID', 'label', 'TIME', 'FILE'], axis=1)
 
     # define the categorical features
     bail_categorical_features = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

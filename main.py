@@ -3,30 +3,6 @@ from train_utils import *
 from model import *
 from utils import *
 
-def run(data, actionable_indices, experiment_dir, weights):
-    
-    lr = 0.002
-    delta_max = 0.75
-    fixed_precisions = [0.4, 0.5, 0.6, 0.7]
-
-    for w in weights:
-        print("WEIGHT: ", w)
-        model = Model(len(data['X_train'].values[0]))
-        
-        torch_X_train = torch.from_numpy(data['X_train'].values).float()
-        torch_y_train = torch.from_numpy(data['y_train'].values).float()
-        torch_X_val = torch.from_numpy(data['X_val'].values).float()
-        torch_y_val = torch.from_numpy(data['y_val'].values).float()
-        
-        # train the model
-        train(model, torch_X_train, torch_y_train, \
-             torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 3, delta_max = delta_max, lr=lr, \
-              fixed_precisions = fixed_precisions)
-
-
-        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.01)
-
 
 # adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names = process_adult_data()
 # adult_data = get_data(adult_X, adult_y)

@@ -7,6 +7,7 @@ import torch
 import numpy as np
 import pandas as pd
 from train_utils import *
+from model import *
 
 def pred_function(model, np_x):
     torch_x = torch.from_numpy(np_x).float()
@@ -114,7 +115,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     num_neg_instances = 0
     num_none_returned = 0
 
-    for i in tqdm(neg_test_preds):
+    for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
         sample = data.iloc[i].values.reshape(1,-1)
         mins = sample[0].copy()
         maxs = sample[0].copy()
@@ -322,3 +323,27 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions)
                     
+
+def run(data, actionable_indices, experiment_dir, weights):
+    
+    lr = 0.002
+    delta_max = 0.75
+    fixed_precisions = [0.4, 0.5, 0.6, 0.7]
+
+    for w in weights:
+        print("WEIGHT: ", w)
+        model = Model(len(data['X_train'].values[0]))
+        
+        torch_X_train = torch.from_numpy(data['X_train'].values).float()
+        torch_y_train = torch.from_numpy(data['y_train'].values).float()
+        torch_X_val = torch.from_numpy(data['X_val'].values).float()
+        torch_y_val = torch.from_numpy(data['y_val'].values).float()
+        
+        # train the model
+        train(model, torch_X_train, torch_y_train, \
+             torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
+              recourse_loss_weight = w, num_epochs = 3, delta_max = delta_max, lr=lr, \
+              fixed_precisions = fixed_precisions)
+
+
+        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.01)
