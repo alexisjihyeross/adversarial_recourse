@@ -256,7 +256,6 @@ def get_threshold_info(model_dir, weight):
     return threshold_df
 
 def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, precisions, flipped_proportion, recourse_proportion):
-    print("writing threshold info")
     thresholds_data = {}
     thresholds_data['thresholds'] = thresholds
     thresholds_data['precisions'] = precisions
@@ -305,7 +304,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
         thresholds = list(threshold_df['thresholds'])
 
     print("THRESHOLDS: ", thresholds)
-    for threshold in thresholds[0:1]:
+    for threshold in thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
         our_flipped_proportion, our_precision, our_recourse_fraction = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, actionable_indices, model_dir)
@@ -320,7 +319,6 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
         wachter_flipped_proportions.append(wachter_flipped_proportion)
         wachter_recourse_proportions.append(wachter_recourse_fraction)
 
-    print("HELLO")
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions)
                     
