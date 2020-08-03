@@ -268,7 +268,7 @@ def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, pr
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
 def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, \
-    thresholds = None, lam_init = 0.01, data_indices = range(0, 20)):
+    thresholds = None, lam_init = 0.01, data_indices = range(0, 500)):
     """
     Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
 
@@ -342,7 +342,7 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 3, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
