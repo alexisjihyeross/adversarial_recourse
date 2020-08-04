@@ -38,6 +38,7 @@ def process_compas_data():
     # if person has high score give them the _negative_ model outcome
     compas_df['label'] = compas_df.apply(lambda row: 0.0 if row['score_text'] == 'High' else 1.0, axis=1)
     compas_y = compas_df['label']
+    print(compas_y)
 
     compas_categorical_features = [1, 4, 5, 6]
 

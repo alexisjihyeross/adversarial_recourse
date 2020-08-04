@@ -7,7 +7,8 @@ import torch
 import numpy as np
 import pandas as pd
 from train_utils import *
-from model import *
+from small_model import *
+from big_model import *
 
 def pred_function(model, np_x):
     torch_x = torch.from_numpy(np_x).float()
@@ -326,13 +327,13 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
 
 def run(data, actionable_indices, experiment_dir, weights):
     
-    lr = 0.0005 # changed this for compas training
+    lr = 0.002 # changed this for compas training
     delta_max = 0.75
     fixed_precisions = [0.4, 0.5, 0.6, 0.7]
 
     for w in weights:
         print("WEIGHT: ", w)
-        model = Model(len(data['X_train'].values[0]))
+        model = BigModel(len(data['X_train'].values[0]))
         
         torch_X_train = torch.from_numpy(data['X_train'].values).float()
         torch_y_train = torch.from_numpy(data['y_train'].values).float()

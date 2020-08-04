@@ -1,6 +1,7 @@
 from data_utils import *
 from train_utils import *
-from model import *
+from small_model import *
+from big_model import *
 from utils import *
 
 # bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names = process_bail_data()

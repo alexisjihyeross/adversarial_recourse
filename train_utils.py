@@ -180,7 +180,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     return val_precision, val_recourse_proportion, val_flipped_proportion
 
 def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_dir, \
-          num_epochs = 12, delta_max = 1.0, batch_size = 32, lr = 0.002, \
+          num_epochs = 12, delta_max = 1.0, batch_size = 10, lr = 0.002, \
           recourse_loss_weight=1, fixed_precisions = [0.5, 0.6, 0.7]):
     
     
@@ -236,6 +236,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
     for n in range(num_epochs):
 
         epoch_start = time.time()
+        train_epoch_loss = 0
 
         print("STARTING epoch: ", n)
     
@@ -248,6 +249,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             
             # define loss function, upweight instance if minority class
             weight = torch.tensor([minority_class_weight]) if (label == min_label) else torch.tensor([1.0])
+            assert ((label == min_label and weight.item() > 1.0) or (label == maj_label and weight.item() == 1.0))
             loss_fn = torch.nn.BCELoss(weight=weight)
             
             # calculate the weighted combined loss
@@ -261,12 +263,15 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
                 optimizer.zero_grad()
                 loss = loss/(batch_size)
                 loss.backward()
+
+                train_epoch_loss += loss.item()
                 
                 optimizer.step()
 
                 loss = 0
         
         # VAL EVALUATION
+        print("TRAIN LOSS FOR EPOCH: ", round(train_epoch_loss, 3))
         model.eval()
 
         # val loss for epoch
@@ -329,7 +334,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
                 epoch_val_loss += loss
                 loss = 0
 
-        print("VAL LOSS: ", round(epoch_val_loss.item(), 3))
+        print("VAL LOSS FOR EPOCH: ", round(epoch_val_loss.item(), 3))
 
         # write training stats for epoch
         write_epoch_train_info(train_file_name, y_true, epoch_start, maj_label, min_label, n)
