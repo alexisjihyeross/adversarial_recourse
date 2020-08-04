@@ -29,13 +29,15 @@ def process_compas_data():
     compas_df['length_of_stay'] = (pd.to_datetime(compas_df['c_jail_out']) - pd.to_datetime(compas_df['c_jail_in'])).dt.days
     compas_X = compas_df[['age', 'two_year_recid','c_charge_degree', 'race', 'sex', 'priors_count', 'length_of_stay']]
 
-    # if person has high score give them the _negative_ model outcome
-    compas_y = compas_df.apply(lambda row: 0.0 if row['score_text'] == 'High' else 1.0, axis=1)
 
     compas_X['isMale'] = compas_X.apply(lambda row: 1 if 'Male' in row['sex'] else 0, axis=1)
     compas_X['isCaucasian'] = compas_X.apply(lambda row: 1 if 'Caucasian' in row['race'] else 0, axis=1)
     compas_X['c_charge_degree_F'] = compas_X.apply(lambda row: 1 if 'F' in row['c_charge_degree'] else 0, axis=1)
     compas_X = compas_X.drop(['sex', 'race', 'c_charge_degree'], axis=1)
+
+    # if person has high score give them the _negative_ model outcome
+    compas_df['label'] = compas_df.apply(lambda row: 0.0 if row['score_text'] == 'High' else 1.0, axis=1)
+    compas_y = compas_df['label']
 
     compas_categorical_features = [1, 4, 5, 6]
 
