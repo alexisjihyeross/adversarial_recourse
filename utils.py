@@ -326,7 +326,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
 
 def run(data, actionable_indices, experiment_dir, weights):
     
-    lr = 0.002
+    lr = 0.0005 # changed this for compas training
     delta_max = 0.75
     fixed_precisions = [0.4, 0.5, 0.6, 0.7]
 
@@ -342,7 +342,7 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 30, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
