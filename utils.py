@@ -333,7 +333,7 @@ def run(data, actionable_indices, experiment_dir, weights):
 
     for w in weights:
         print("WEIGHT: ", w)
-        model = BigModel(len(data['X_train'].values[0]))
+        model = SmallModel(len(data['X_train'].values[0]))
         
         torch_X_train = torch.from_numpy(data['X_train'].values).float()
         torch_y_train = torch.from_numpy(data['y_train'].values).float()

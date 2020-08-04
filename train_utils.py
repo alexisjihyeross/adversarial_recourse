@@ -137,9 +137,10 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     """
     
     # compute stats at this threshold
-    val_y_pred = [0.0 if a < t else 1.0 for a in (model(X_val).detach().numpy())]
+    val_y_pred = np.array([0.0 if a < t else 1.0 for a in (model(X_val).detach().numpy())])
+    val_y_true = (y_val).detach().numpy()
 
-    val_acc = np.sum(val_y_pred == y_val)/(y_val).shape[0]
+    val_acc = np.sum(val_y_pred == val_y_true)/val_y_true.shape[0]
     val_f1 = f1_score(y_val, val_y_pred)
     val_precision = precision_score(y_val, val_y_pred)
     val_recall = recall_score(y_val, val_y_pred)
@@ -300,6 +301,13 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             rounded_th = round(th, 3)
             prec_thresholds.append(rounded_th)
 
+
+        # add custom thresholds
+        prec_thresholds.append(0.3)
+        prec_thresholds.append(0.4)
+        prec_thresholds.append(0.5)
+
+
         # FOR VAL
         flipped_epoch_by_threshold = [0 for a in prec_thresholds]
         negative_epoch_by_threshold = [0 for a in prec_thresholds]     
@@ -369,6 +377,16 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             precision_by_threshold.append(round(val_precision, 3))
             recourse_proportion_by_threshold.append(val_recourse_proportion)
             flipped_proportion_by_threshold.append(val_flipped_proportion)
+
+
+        # below are to write stats for custom thresholds
+        # test_threshold_file = weight_dir + str(recourse_loss_weight) + "_0.5_threshold_stats.txt"
+
+        # _, _, _ = write_stats_at_threshold(test_threshold_file, test_threshold_file, model, X_train, X_val, y_train, y_val, \
+        #         0.3, -1, False, num_negative, num_positive)
+
+        # _, _, _ = write_stats_at_threshold(test_threshold_file, test_threshold_file, model, X_train, X_val, y_train, y_val, \
+        #         0.4, -1, False, num_negative, num_positive)
 
         # if the best epoch, write information about thresholds and various metrics
         if best_epoch:
