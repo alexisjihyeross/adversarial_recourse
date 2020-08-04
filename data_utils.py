@@ -8,6 +8,50 @@ DATA_DIR = 'data/'
 def get_data_file(data_name):
     return os.path.join(DATA_DIR, '%s.csv' % data_name)
 
+def process_compas_data():
+    """
+    Processes normalized adult dataset in DATA_DIR
+
+    :returns: tuple (adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names)
+        adult_categorical_features: indices of categorical features in the processed dataset
+    """
+
+    data_file = get_data_file("compas-scores-two-years")
+
+    # load and process data
+    compas_df = pd.read_csv(data_file, index_col=0)
+    compas_df = compas_df.loc[(compas_df['days_b_screening_arrest'] <= 30) &
+                              (compas_df['days_b_screening_arrest'] >= -30) &
+                              (compas_df['is_recid'] != -1) &
+                              (compas_df['c_charge_degree'] != "O") &
+                              (compas_df['score_text'] != "NA")]
+
+    compas_df['length_of_stay'] = (pd.to_datetime(compas_df['c_jail_out']) - pd.to_datetime(compas_df['c_jail_in'])).dt.days
+    compas_X = compas_df[['age', 'two_year_recid','c_charge_degree', 'race', 'sex', 'priors_count', 'length_of_stay']]
+
+    # if person has high score give them the _negative_ model outcome
+    compas_y = np.array([0.0 if score == 'High' else 1.0 for score in compas_df['score_text']])
+
+    compas_X['isMale'] = compas_X.apply(lambda row: 1 if 'Male' in row['sex'] else 0, axis=1)
+    compas_X['isCaucasian'] = compas_X.apply(lambda row: 1 if 'Caucasian' in row['race'] else 0, axis=1)
+    compas_X['c_charge_degree_F'] = compas_X.apply(lambda row: 1 if 'F' in row['c_charge_degree'] else 0, axis=1)
+    compas_X = compas_X.drop(['sex', 'race', 'c_charge_degree'], axis=1)
+
+    compas_categorical_features = [1, 4, 5, 6]
+
+    columns = compas_X.columns
+    compas_categorical_names = [columns[i] for i in compas_categorical_features] 
+
+    # normalize continuous features
+    for col in compas_X.columns:
+        if col not in compas_categorical_names:
+            compas_X[col] = (compas_X[col] - compas_X[col].mean(axis=0)) / compas_X[col].std(axis=0)
+
+
+    compas_actionable_indices = [0, 2, 3]
+    return compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names
+
+
 def process_adult_data():
     """
     Processes normalized adult dataset in DATA_DIR
