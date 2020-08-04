@@ -31,6 +31,9 @@ def process_compas_data():
 
     # if person has high score give them the _negative_ model outcome
     compas_y = np.array([0.0 if score == 'High' else 1.0 for score in compas_df['score_text']])
+    compas_y = compas_X.apply(lambda row: 0.0 if row['score_text'] == 'High' else 1.0, axis=1)
+    print(compas_y.value_counts())
+
 
     compas_X['isMale'] = compas_X.apply(lambda row: 1 if 'Male' in row['sex'] else 0, axis=1)
     compas_X['isCaucasian'] = compas_X.apply(lambda row: 1 if 'Caucasian' in row['race'] else 0, axis=1)
