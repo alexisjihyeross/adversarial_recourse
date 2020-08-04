@@ -1,0 +1,5 @@
+index,thresholds,precisions,flipped_proportion,recourse_proportion
+0,0.09,0.4,1166,1.0
+1,0.308,0.515,1659,0.998
+2,0.555,0.622,2006,0.993
+3,0.705,0.707,2265,0.988
