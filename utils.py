@@ -387,7 +387,7 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 10, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
