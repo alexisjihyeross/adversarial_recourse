@@ -9,6 +9,7 @@ import pandas as pd
 from train_utils import *
 from small_model import *
 from big_model import *
+from onnx_utils import *
 
 def pred_function(model, np_x):
     torch_x = torch.from_numpy(np_x).float()
@@ -116,62 +117,95 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     num_neg_instances = 0
     num_none_returned = 0
 
-    for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
-        sample = data.iloc[i].values.reshape(1,-1)
-        mins = sample[0].copy()
-        maxs = sample[0].copy()
-        for ai in actionable_indices:
-            mins[ai] = mins[ai] - delta_max
-            maxs[ai] = maxs[ai] + delta_max
-        mins = mins.reshape(1,-1)
-        maxs = maxs.reshape(1,-1)
-        tf.reset_default_graph()
-        explainer = CounterFactual(lambda x: pred_function(model, x), \
-                               shape=(1,) + data.iloc[0].values.shape, \
-                               tol=(1.0 - threshold), target_class='other', \
-                               feature_range = (mins, maxs), lam_init = lam_init)
-        try:
-            recourse = explainer.explain(sample)
-            if recourse.cf != None:
-                action = (recourse.cf['X'][0]) - sample
-                if do_print:
-                    print("lambda: ", recourse.cf['lambda'])
-                    print('index: ', recourse.cf['index'])
-                    print("action: ", np.around(action, 2))
-                    print("sample: ", sample)
-                    print("counterfactual: ", recourse.cf['X'][0])
-                    print("counterfactual proba: ", recourse.cf['proba'])
-                    print("normal proba: ", pred_function(model, sample))
-            else:
+
+    weight_dir = model_dir
+
+    dummy_input = torch.from_numpy(data.values[0:2]).float()
+    onxx_model_name = save_model_as_onxx(model, dummy_input, weight_dir, weight)
+    onnx_model = onnx.load(onxx_model_name)
+
+    tf.compat.v1.disable_eager_execution()
+
+    k_model = onnx_to_keras(onnx_model, ['input.1'])
+
+    keras_model_name = weight_dir + str(weight) + '_best_model.h5'
+
+    k_model.save(keras_model_name)
+
+    tf.keras.backend.clear_session()    
+
+    new_k_model = keras.models.load_model(keras_model_name)
+
+    tf.compat.v1.disable_eager_execution()
+    new_k_model._make_predict_function()
+
+    global graph
+    graph = tf.compat.v1.get_default_graph()
+
+    with graph.as_default():
+
+        for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
+            sample = data.iloc[i].values.reshape(1,-1)
+            mins = sample[0].copy()
+            maxs = sample[0].copy()
+            for ai in actionable_indices:
+                mins[ai] = mins[ai] - delta_max
+                maxs[ai] = maxs[ai] + delta_max
+            mins = mins.reshape(1,-1)
+            maxs = maxs.reshape(1,-1)
+            tf.reset_default_graph()
+
+            original_pred = new_k_model.predict(sample).item()
+            original_pred = 1 if original_pred > threshold else 0
+            target_pred = 1 if original_pred == 0 else 0
+            tol = (1 - threshold) if target_pred == 1 else threshold
+
+            explainer = CounterFactual(lambda x: pred_function(keras_model_name, x), \
+                                   shape=(1,) + data.iloc[0].values.shape, target_proba = target_pred, \
+                                   tol=tol, target_class='same', \
+                                   feature_range = (mins, maxs), lam_init = lam_init)
+            try:
+                recourse = explainer.explain(sample)
+                if recourse.cf != None:
+                    action = (recourse.cf['X'][0]) - sample
+                    if do_print:
+                        print("lambda: ", recourse.cf['lambda'])
+                        print('index: ', recourse.cf['index'])
+                        print("action: ", np.around(action, 2))
+                        print("sample: ", sample)
+                        print("counterfactual: ", recourse.cf['X'][0])
+                        print("counterfactual proba: ", recourse.cf['proba'])
+                        print("normal proba: ", pred_function(model, sample))
+                else:
+                    num_no_recourses += 1
+                    num_none_returned += 1
+            except UnboundLocalError as e:
                 num_no_recourses += 1
-                num_none_returned += 1
-        except UnboundLocalError as e:
-            num_no_recourses += 1
-            if do_print:
-                print(e)
-                print("no success")
-        num_neg_instances += 1
+                if do_print:
+                    print(e)
+                    print("no success")
+            num_neg_instances += 1
+            
+        num_with_recourses = num_neg_instances - num_no_recourses
+
+        if num_neg_instances != 0:
+            flipped_proportion = round((num_neg_instances-num_no_recourses)/num_neg_instances, 3)
+            none_returned_proportion = round(num_none_returned/num_neg_instances, 3)
+        else:
+            flipped_proportion = 0
+            none_returned_proportion = 0
+
+        recourse_fraction = round((pos_preds + num_with_recourses)/len(y_pred), 3)
         
-    num_with_recourses = num_neg_instances - num_no_recourses
-
-    if num_neg_instances != 0:
-        flipped_proportion = round((num_neg_instances-num_no_recourses)/num_neg_instances, 3)
-        none_returned_proportion = round(num_none_returned/num_neg_instances, 3)
-    else:
-        flipped_proportion = 0
-        none_returned_proportion = 0
-
-    recourse_fraction = round((pos_preds + num_with_recourses)/len(y_pred), 3)
-    
-    assert(num_neg_instances == neg_preds)
-    assert((pos_preds + num_neg_instances) == len(y_pred))
-    
-    f = open(file_name, "a")
-    print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
-    print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
-    print("proportion with recourse: {}".format(recourse_fraction), file=f)
-    print("--------\n\n", file=f) 
-    f.close()
+        assert(num_neg_instances == neg_preds)
+        assert((pos_preds + num_neg_instances) == len(y_pred))
+        
+        f = open(file_name, "a")
+        print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
+        print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
+        print("proportion with recourse: {}".format(recourse_fraction), file=f)
+        print("--------\n\n", file=f) 
+        f.close()
 
     return flipped_proportion, precision, recourse_fraction
 

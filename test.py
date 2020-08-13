@@ -33,6 +33,7 @@ weight = "0.0"
 onnx_model = onnx.load(weight_dir + str(weight) + '_best_model.onnx')
 
 
+
 input_all = [node.name for node in onnx_model.graph.input]
 input_initializer =  [node.name for node in onnx_model.graph.initializer]
 net_feed_input = list(set(input_all)  - set(input_initializer))
