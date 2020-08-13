@@ -3,4 +3,5 @@ alibi==0.5.1
 numpy==1.19.1
 scikit-learn
 pytorch
+torchvision
 
