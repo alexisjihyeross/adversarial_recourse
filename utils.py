@@ -150,9 +150,10 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     global graph
     graph = tf.compat.v1.get_default_graph()
 
-    with graph.as_default():
+    for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
+        tf.compat.v1.reset_default_graph()
+        with graph.as_default():
 
-        for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
             sample = data.iloc[i].values.reshape(1,-1)
             mins = sample[0].copy()
             maxs = sample[0].copy()
@@ -161,14 +162,14 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                 maxs[ai] = maxs[ai] + delta_max
             mins = mins.reshape(1,-1)
             maxs = maxs.reshape(1,-1)
-            tf.reset_default_graph()
+
 
             original_pred = new_k_model.predict(sample).item()
             original_pred = 1 if original_pred > threshold else 0
             target_pred = 1 if original_pred == 0 else 0
             tol = (1 - threshold) if target_pred == 1 else threshold
 
-            explainer = CounterFactual(lambda x: pred_function(keras_model_name, x), \
+            explainer = CounterFactual(new_k_model, \
                                    shape=(1,) + data.iloc[0].values.shape, target_proba = target_pred, \
                                    tol=tol, target_class='same', \
                                    feature_range = (mins, maxs), lam_init = lam_init)
@@ -183,7 +184,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                         print("sample: ", sample)
                         print("counterfactual: ", recourse.cf['X'][0])
                         print("counterfactual proba: ", recourse.cf['proba'])
-                        print("normal proba: ", pred_function(model, sample))
+                        print("normal proba: ", new_k_model.predict(sample))
                 else:
                     num_no_recourses += 1
                     num_none_returned += 1
@@ -192,28 +193,28 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                 if do_print:
                     print(e)
                     print("no success")
-            num_neg_instances += 1
-            
-        num_with_recourses = num_neg_instances - num_no_recourses
-
-        if num_neg_instances != 0:
-            flipped_proportion = round((num_neg_instances-num_no_recourses)/num_neg_instances, 3)
-            none_returned_proportion = round(num_none_returned/num_neg_instances, 3)
-        else:
-            flipped_proportion = 0
-            none_returned_proportion = 0
-
-        recourse_fraction = round((pos_preds + num_with_recourses)/len(y_pred), 3)
+        num_neg_instances += 1
         
-        assert(num_neg_instances == neg_preds)
-        assert((pos_preds + num_neg_instances) == len(y_pred))
-        
-        f = open(file_name, "a")
-        print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
-        print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
-        print("proportion with recourse: {}".format(recourse_fraction), file=f)
-        print("--------\n\n", file=f) 
-        f.close()
+    num_with_recourses = num_neg_instances - num_no_recourses
+
+    if num_neg_instances != 0:
+        flipped_proportion = round((num_neg_instances-num_no_recourses)/num_neg_instances, 3)
+        none_returned_proportion = round(num_none_returned/num_neg_instances, 3)
+    else:
+        flipped_proportion = 0
+        none_returned_proportion = 0
+
+    recourse_fraction = round((pos_preds + num_with_recourses)/len(y_pred), 3)
+    
+    assert(num_neg_instances == neg_preds)
+    assert((pos_preds + num_neg_instances) == len(y_pred))
+    
+    f = open(file_name, "a")
+    print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
+    print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
+    print("proportion with recourse: {}".format(recourse_fraction), file=f)
+    print("--------\n\n", file=f) 
+    f.close()
 
     return flipped_proportion, precision, recourse_fraction
 
@@ -372,6 +373,7 @@ def run(data, actionable_indices, experiment_dir, weights):
     lr = 0.002 # changed this for compas training
     delta_max = 0.75
     fixed_precisions = [0.4, 0.5, 0.6, 0.7]
+    fixed_precisions = []
 
     for w in weights:
         print("WEIGHT: ", w)

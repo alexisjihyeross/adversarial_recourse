@@ -303,10 +303,17 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
 
         # add custom thresholds
+        prec_thresholds.append(0.25)
         prec_thresholds.append(0.3)
+        prec_thresholds.append(0.35)
         prec_thresholds.append(0.4)
+        prec_thresholds.append(0.45)
         prec_thresholds.append(0.5)
-
+        prec_thresholds.append(0.55)
+        prec_thresholds.append(0.6)
+        prec_thresholds.append(0.65)
+        prec_thresholds.append(0.7)
+        prec_thresholds.append(0.75)
 
         # FOR VAL
         flipped_epoch_by_threshold = [0 for a in prec_thresholds]

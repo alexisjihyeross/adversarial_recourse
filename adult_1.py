@@ -6,7 +6,7 @@ from utils import *
 
 
 adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names = process_adult_data()
-adult_experiment_dir = 'results/08_12/'
+adult_experiment_dir = 'results/0812_adult/'
 adult_data = get_data(adult_X, adult_y)
 write_data(adult_data, adult_experiment_dir)
 adult_data = read_data(adult_experiment_dir)
