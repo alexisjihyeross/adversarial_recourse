@@ -10,6 +10,11 @@ from train_utils import *
 from small_model import *
 from big_model import *
 from onnx_utils import *
+from onnx2keras import onnx_to_keras
+import logging
+import tensorflow as tf
+from tensorflow import keras
+
 
 def pred_function(model, np_x):
     torch_x = torch.from_numpy(np_x).float()
@@ -119,6 +124,9 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
 
     weight_dir = model_dir
+
+    logger = logging.getLogger('alibi.explainers.counterfactual')
+    logging.basicConfig(level=logging.CRITICAL)
 
     dummy_input = torch.from_numpy(data.values[0:2]).float()
     onxx_model_name = save_model_as_onxx(model, dummy_input, weight_dir, weight)
@@ -377,7 +385,7 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
