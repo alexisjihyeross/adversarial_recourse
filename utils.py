@@ -128,6 +128,141 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     logger = logging.getLogger('alibi.explainers.counterfactual')
     logging.basicConfig(level=logging.CRITICAL)
 
+    global graph
+
+    for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
+
+        sample = data.iloc[i].values.reshape(1,-1)
+        mins = sample[0].copy()
+        maxs = sample[0].copy()
+        for ai in actionable_indices:
+            mins[ai] = mins[ai] - delta_max
+            maxs[ai] = maxs[ai] + delta_max
+        mins = mins.reshape(1,-1)
+        maxs = maxs.reshape(1,-1)
+
+
+        original_pred = new_k_model.predict(sample).item()
+        original_pred = 1 if original_pred > threshold else 0
+        target_pred = 1 if original_pred == 0 else 0
+        tol = (1 - threshold)
+        tf.reset_default_graph()
+        explainer = CounterFactual(lambda x: pred_function(model, x), \
+                               shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
+                               tol=tol, target_class='same', \
+                               feature_range = (mins, maxs), lam_init = lam_init)
+        try:
+            recourse = explainer.explain(sample)
+            if recourse.cf != None:
+                action = (recourse.cf['X'][0]) - sample
+                if do_print:
+                    print("lambda: ", recourse.cf['lambda'])
+                    print('index: ', recourse.cf['index'])
+                    print("action: ", np.around(action, 2))
+                    print("sample: ", sample)
+                    print("counterfactual: ", recourse.cf['X'][0])
+                    print("counterfactual proba: ", recourse.cf['proba'])
+                    print("normal proba: ", new_k_model.predict(sample))
+            else:
+                num_no_recourses += 1
+                num_none_returned += 1
+        except UnboundLocalError as e:
+            num_no_recourses += 1
+            if do_print:
+                print(e)
+                print("no success")
+        num_neg_instances += 1
+        
+    num_with_recourses = num_neg_instances - num_no_recourses
+
+    if num_neg_instances != 0:
+        flipped_proportion = round((num_neg_instances-num_no_recourses)/num_neg_instances, 3)
+        none_returned_proportion = round(num_none_returned/num_neg_instances, 3)
+    else:
+        flipped_proportion = 0
+        none_returned_proportion = 0
+
+    recourse_fraction = round((pos_preds + num_with_recourses)/len(y_pred), 3)
+    
+    assert(num_neg_instances == neg_preds)
+    assert((pos_preds + num_neg_instances) == len(y_pred))
+    
+    f = open(file_name, "a")
+    print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
+    print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
+    print("proportion with recourse: {}".format(recourse_fraction), file=f)
+    print("--------\n\n", file=f) 
+    f.close()
+
+    return flipped_proportion, precision, recourse_fraction
+
+def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir):
+    """
+    calculate the optimal delta using linear program
+
+    :param model: pytorch model to evaluate
+    :param X_test: X test dataframe data (e.g. adult_data['X_test'])
+    :param y_test: y test dataframe data (e.g. adult_data['y_test'])
+    :param weight: weight being evaluated (used to name file)
+    :param threshold: threshold to use in evaluation
+    :param delta_max: parameter defining maximum change in individual feature value
+    :param lam_init: lam hyperparameter for wachter evaluation
+    :data_indices: subset of data to evaluate on (e.g. something like range(100, 300))
+    :actionable_indices: indices of actionable features
+    :model_dir: model (weight) specific directory within experiment directory
+
+    :returns: 
+    """
+
+    test_eval_dir = model_dir + "test_eval/"
+
+    if not os.path.exists(test_eval_dir):
+        os.makedirs(test_eval_dir)
+
+    file_name = test_eval_dir + str(weight) + '_wachter_' + str(threshold) + '_test.txt'
+
+    model.eval()
+    data = X_test.iloc[data_indices]    
+    labels = y_test.iloc[data_indices]
+
+    torch_data = torch.from_numpy(data.values).float()
+    torch_labels = torch.from_numpy(labels.values)
+
+    # this part is redundant with print_test_results
+    y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
+    y_true = ((torch_labels).detach().numpy())
+    y_prob_pred = model(torch_data).detach().numpy()
+    precision = round(precision_score(y_true, y_pred), 3)
+    pos_preds = np.sum(y_pred)
+    neg_preds = len(y_pred) - pos_preds
+
+    print_test_results(file_name, model, threshold, weight, data, labels, precision)
+
+    f = open(file_name, "a")
+    print("LAM INIT: {}".format(lam_init), file=f)
+    print("DELTA MAX: {}".format(delta_max), file=f)
+    print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
+    f.close()
+
+    # consider all lams from lam_init/10 to lam_init; 
+    #if cannot find any counterfactual instances using those values, i am assuming it is an unsolvable problem
+
+    do_print = True 
+
+    scores = (pred_function(model, data.values)[:, 0])
+
+    neg_test_preds = np.nonzero(np.array(scores) < threshold)[0]
+
+    num_no_recourses = 0
+    num_neg_instances = 0
+    num_none_returned = 0
+
+
+    weight_dir = model_dir
+
+    logger = logging.getLogger('alibi.explainers.counterfactual')
+    logging.basicConfig(level=logging.CRITICAL)
+
     dummy_input = torch.from_numpy(data.values[0:2]).float()
     onxx_model_name = save_model_as_onxx(model, dummy_input, weight_dir, weight)
     onnx_model = onnx.load(onxx_model_name)
