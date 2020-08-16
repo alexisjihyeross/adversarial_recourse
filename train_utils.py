@@ -146,6 +146,10 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     val_recall = recall_score(y_val, val_y_pred)
         
     train_preds = [0.0 if a < t else 1.0 for a in model(X_train).detach().numpy().ravel()]
+    if num_negative != 0:
+        val_proportion_flipped = round(val_flipped/num_negative, 3)
+    else:
+        val_proportion_flipped = 0
 
     training_file = open(train_file_name, "a")
     training_file.write("\nSTATS FOR threshold = " + str(t) + ":\n")
@@ -154,7 +158,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     training_file.write("val f1: {}\n".format(round(val_f1, 3)))
     training_file.write("val precision: {}\n".format(round(val_precision, 3)))
     training_file.write("val recall: {}\n".format(round(val_recall, 3)))
-    training_file.write("val num flipped: {}; {}/{}\n".format(round(val_flipped/num_negative, 3), val_flipped, num_negative))
+    training_file.write("val num flipped: {}; {}/{}\n".format(val_proportion_flipped, val_flipped, num_negative))
     training_file.write("val num with recourse: {}; {}/{}\n".format(round((val_flipped + num_positive)/len(y_val), 3), (val_flipped + num_positive), len(y_val)))
     training_file.write("train accuracy: {}\n".format(round(np.sum((train_preds \
                  == ((y_train).detach().numpy()))/((y_train).detach().numpy()).shape[0]), 3)))
@@ -303,12 +307,6 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
 
         # add custom thresholds
-        prec_thresholds.append(0.25)
-        prec_thresholds.append(0.3)
-        prec_thresholds.append(0.35)
-        prec_thresholds.append(0.4)
-        prec_thresholds.append(0.45)
-        prec_thresholds.append(0.5)
         prec_thresholds.append(0.55)
         prec_thresholds.append(0.6)
         prec_thresholds.append(0.65)

@@ -112,7 +112,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     # consider all lams from lam_init/10 to lam_init; 
     #if cannot find any counterfactual instances using those values, i am assuming it is an unsolvable problem
 
-    do_print = False
+    do_print = True 
 
     scores = (pred_function(model, data.values)[:, 0])
 
@@ -387,7 +387,7 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 10, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
