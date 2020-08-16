@@ -307,12 +307,10 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
 
         # add custom thresholds
-        """
         prec_thresholds.append(0.35)
         prec_thresholds.append(0.4)
         prec_thresholds.append(0.45)
         prec_thresholds.append(0.5)
-        """
         prec_thresholds.append(0.55)
         prec_thresholds.append(0.6)
         prec_thresholds.append(0.65)
