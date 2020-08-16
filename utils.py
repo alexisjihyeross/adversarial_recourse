@@ -518,8 +518,8 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 5, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
-        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.1)
+        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.01)
