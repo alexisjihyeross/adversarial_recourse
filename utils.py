@@ -167,10 +167,10 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
             original_pred = new_k_model.predict(sample).item()
             original_pred = 1 if original_pred > threshold else 0
             target_pred = 1 if original_pred == 0 else 0
-            tol = (1 - threshold) if target_pred == 1 else threshold
+            tol = (1 - threshold)
 
             explainer = CounterFactual(new_k_model, \
-                                   shape=(1,) + data.iloc[0].values.shape, target_proba = target_pred, \
+                                   shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
                                    tol=tol, target_class='same', \
                                    feature_range = (mins, maxs), lam_init = lam_init)
             try:
