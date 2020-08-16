@@ -128,8 +128,6 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     logger = logging.getLogger('alibi.explainers.counterfactual')
     logging.basicConfig(level=logging.CRITICAL)
 
-    global graph
-
     for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
 
         sample = data.iloc[i].values.reshape(1,-1)
@@ -142,14 +140,12 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
         maxs = maxs.reshape(1,-1)
 
 
-        original_pred = new_k_model.predict(sample).item()
-        original_pred = 1 if original_pred > threshold else 0
-        target_pred = 1 if original_pred == 0 else 0
         tol = (1 - threshold)
-        tf.reset_default_graph()
+        tf.compat.v1.disable_eager_execution()
+        tf.keras.backend.clear_session()
         explainer = CounterFactual(lambda x: pred_function(model, x), \
                                shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
-                               tol=tol, target_class='same', \
+                               target_class='other', tol = tol, \
                                feature_range = (mins, maxs), lam_init = lam_init)
         try:
             recourse = explainer.explain(sample)
@@ -162,7 +158,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                     print("sample: ", sample)
                     print("counterfactual: ", recourse.cf['X'][0])
                     print("counterfactual proba: ", recourse.cf['proba'])
-                    print("normal proba: ", new_k_model.predict(sample))
+                    print("normal proba: ", pred_function(model, sample))
             else:
                 num_no_recourses += 1
                 num_none_returned += 1
@@ -522,8 +518,8 @@ def run(data, actionable_indices, experiment_dir, weights):
         # train the model
         train(model, torch_X_train, torch_y_train, \
              torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
+              recourse_loss_weight = w, num_epochs = 5, delta_max = delta_max, lr=lr, \
               fixed_precisions = fixed_precisions)
 
 
-        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.01)
+        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.1)
