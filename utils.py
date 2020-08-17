@@ -302,7 +302,7 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
 
             explainer = CounterFactual(new_k_model, \
                                    shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
-                                   tol=tol, target_class='same', \
+                                   tol=tol, target_class='same',
                                    feature_range = (mins, maxs), lam_init = lam_init)
             try:
                 recourse = explainer.explain(sample)
@@ -489,7 +489,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
         our_flipped_proportions.append(our_flipped_proportion)
         our_recourse_proportions.append(our_recourse_fraction)
 
-        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = tf_wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir)
         wachter_thresholds.append(threshold)
         wachter_precisions.append(wachter_precision)
         wachter_flipped_proportions.append(wachter_flipped_proportion)
@@ -508,6 +508,7 @@ def run(data, actionable_indices, experiment_dir, weights):
 
     for w in weights:
         print("WEIGHT: ", w)
+        print(data['X_train'].values[0])
         model = SmallModel(len(data['X_train'].values[0]))
         
         torch_X_train = torch.from_numpy(data['X_train'].values).float()
@@ -522,4 +523,4 @@ def run(data, actionable_indices, experiment_dir, weights):
               fixed_precisions = fixed_precisions)
 
 
-        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.01)
+        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.001)
