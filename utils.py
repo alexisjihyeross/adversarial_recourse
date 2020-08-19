@@ -350,7 +350,7 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
     return flipped_proportion, precision, recourse_fraction
 
 
-def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, actionable_indices, model_dir):
+def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir):
     """
     calculate the optimal delta using linear program
 
@@ -375,8 +375,11 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, actionable
 
     model.eval()
 
-    torch_data = torch.from_numpy(X_test.values).float()
-    torch_labels = torch.from_numpy(y_test.values)
+    data = X_test.iloc[data_indices]    
+    labels = y_test.iloc[data_indices]
+
+    torch_data = torch.from_numpy(data.values).float()
+    torch_labels = torch.from_numpy(labels.values)
 
     # this part is redundant with print_test_results
     y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
@@ -386,7 +389,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, actionable
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    print_test_results(file_name, model, threshold, weight, X_test, y_test, precision)
+    print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
     f = open(file_name, "a")
     print("DELTA MAX: {}".format(delta_max), file=f)
@@ -394,7 +397,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, actionable
     loss_fn = torch.nn.BCELoss()
 
     negative_instances, flipped = 0, 0
-    total_instances = len(y_test)
+    total_instances = len(labels)
 
     for i in range(len(torch_labels)):
         x = torch_data[i]              # data point
@@ -407,7 +410,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, actionable
                 flipped += 1
 
     recourse_fraction = round((flipped + pos_preds)/total_instances, 3)
-    f.write("\nlen(test): {}".format(len(y_test)))
+    f.write("\nlen(test): {}".format(len(labels)))
     if negative_instances != 0:
         f.write("\nflipped/negative: {}, {}/{}".format(round(flipped/negative_instances, 3), flipped, negative_instances))
     else:
@@ -483,13 +486,13 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     for threshold in thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
-        our_flipped_proportion, our_precision, our_recourse_fraction = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, actionable_indices, model_dir)
+        our_flipped_proportion, our_precision, our_recourse_fraction = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, data_indices, actionable_indices, model_dir)
         our_thresholds.append(threshold)
         our_precisions.append(our_precision)
         our_flipped_proportions.append(our_flipped_proportion)
         our_recourse_proportions.append(our_recourse_fraction)
 
-        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = tf_wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir)
         wachter_thresholds.append(threshold)
         wachter_precisions.append(wachter_precision)
         wachter_flipped_proportions.append(wachter_flipped_proportion)
