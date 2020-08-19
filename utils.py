@@ -61,7 +61,7 @@ def print_test_results(file_name, model, threshold, weight, data, labels, precis
     print("acc: ", acc, file=f)
     f.close()
 
-def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir):
+def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
     """
     calculate the optimal delta using linear program
 
@@ -145,8 +145,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
         tf.keras.backend.clear_session()
         explainer = CounterFactual(lambda x: pred_function(model, x), \
                                shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
-                               target_class='other', tol = tol, \
-                               feature_range = (mins, maxs), lam_init = lam_init)
+                               target_class='other', tol = tol, feature_range = (mins, maxs), \
+                               lam_init = lam_init, max_lam_steps = max_lam_steps)
         try:
             recourse = explainer.explain(sample)
             if recourse.cf != None:
@@ -192,7 +192,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     return flipped_proportion, precision, recourse_fraction
 
-def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir):
+def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
     """
     calculate the optimal delta using linear program
 
@@ -302,8 +302,8 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
 
             explainer = CounterFactual(new_k_model, \
                                    shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
-                                   tol=tol, target_class='same',
-                                   feature_range = (mins, maxs), lam_init = lam_init)
+                                   tol=tol, target_class='same', feature_range = (mins, maxs), \
+                                   lam_init = lam_init, max_lam_steps = max_lam_steps)
             try:
                 recourse = explainer.explain(sample)
                 if recourse.cf != None:
@@ -446,7 +446,7 @@ def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, pr
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
 def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, \
-    thresholds = None, lam_init = 0.01, data_indices = range(0, 500)):
+    thresholds = None, lam_init = 0.01, max_lam_steps = 10, data_indices = range(0, 500)):
     """
     Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
 
@@ -492,7 +492,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
         our_flipped_proportions.append(our_flipped_proportion)
         our_recourse_proportions.append(our_recourse_fraction)
 
-        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, data_indices, actionable_indices, model_dir)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir)
         wachter_thresholds.append(threshold)
         wachter_precisions.append(wachter_precision)
         wachter_flipped_proportions.append(wachter_flipped_proportion)
@@ -502,7 +502,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions)
                     
 
-def run(data, actionable_indices, experiment_dir, weights, do_train):
+def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 0.001, max_lam_steps = 10):
     
     lr = 0.002 # changed this for compas training
     delta_max = 0.75
@@ -531,4 +531,4 @@ def run(data, actionable_indices, experiment_dir, weights, do_train):
         else:
             model = load_torch_model(weight_dir, weight):
 
-        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.001)
+        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = lam_init, max_lam_steps = max_lam_steps)
