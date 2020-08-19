@@ -503,12 +503,14 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions)
                     
 
-def run(data, actionable_indices, experiment_dir, weights):
+def run(data, actionable_indices, experiment_dir, weights, do_train):
     
     lr = 0.002 # changed this for compas training
     delta_max = 0.75
     fixed_precisions = [0.4, 0.5, 0.6, 0.7]
     fixed_precisions = []
+
+    weight_dir = experiment_dir + str(w) + "/"
 
     for w in weights:
         print("WEIGHT: ", w)
@@ -519,11 +521,14 @@ def run(data, actionable_indices, experiment_dir, weights):
         torch_X_val = torch.from_numpy(data['X_val'].values).float()
         torch_y_val = torch.from_numpy(data['y_val'].values).float()
         
-        # train the model
-        train(model, torch_X_train, torch_y_train, \
-             torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-              recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
-              fixed_precisions = fixed_precisions)
-
+        if do_train:
+            # train the model
+            train(model, torch_X_train, torch_y_train, \
+                 torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
+                  recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
+                  fixed_precisions = fixed_precisions)
+        
+        else:
+            model = load_torch_model(weight_dir, weight):
 
         run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.01)
