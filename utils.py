@@ -192,7 +192,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     print("--------\n\n", file=f) 
     f.close()
 
-    return flipped, precision, recourse_fraction, f1, recall, acc
+    return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
 def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
     """
@@ -349,7 +349,7 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
     print("--------\n\n", file=f) 
     f.close()
 
-    return flipped, precision, recourse_fraction, f1, recall, acc
+    return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
 
 def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir):
@@ -413,9 +413,15 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
                 flipped += 1
 
     recourse_fraction = round((flipped + pos_preds)/total_instances, 3)
+
+    if negative_instances != 0:
+        flipped_proportion = round((flipped)/negative_instances, 3)
+    else:
+        flipped_proportion = 0
+
     f.write("\nlen(test): {}".format(len(labels)))
     if negative_instances != 0:
-        f.write("\nflipped/negative: {}, {}/{}".format(round(flipped/negative_instances, 3), flipped, negative_instances))
+        f.write("\nflipped/negative: {}, {}/{}".format(flipped_proportion, flipped, negative_instances))
     else:
         f.write("\nflipped/negative: {}, {}/{}".format('NA', flipped, negative_instances))
     f.write("\nportion of all instances with recourse: {} (includes pos preds)".format(recourse_fraction))
@@ -429,7 +435,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     f.write("test min baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))            
     f.close()    
 
-    return flipped, precision, recourse_fraction, f1, recall, acc
+    return flipped_proportion, precision, recourse_fraction, f1, recall, acc
         
 def get_threshold_info(model_dir, weight):
     # this is based on the value of this name in the train function
