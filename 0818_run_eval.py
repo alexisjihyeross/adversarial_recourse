@@ -12,7 +12,7 @@ compas_X, compas_y, compas_actionable_indices, compas_categorical_features, comp
 compas_data = read_data(compas_experiment_dir)
 
 delta_max = 0.75
-weight_dir = experiment_dir + str(w) + "/"
+weight_dir = compas_experiment_dir + str(w) + "/"
 
 for w in weights_to_eval:
     print("WEIGHT: ", w)    
