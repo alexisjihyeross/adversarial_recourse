@@ -61,6 +61,8 @@ def print_test_results(file_name, model, threshold, weight, data, labels, precis
     print("acc: ", acc, file=f)
     f.close()
 
+    return f1, recall, acc
+
 def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
     """
     calculate the optimal delta using linear program
@@ -101,7 +103,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    print_test_results(file_name, model, threshold, weight, data, labels, precision)
+    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
     f = open(file_name, "a")
     print("LAM INIT: {}".format(lam_init), file=f)
@@ -190,7 +192,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     print("--------\n\n", file=f) 
     f.close()
 
-    return flipped_proportion, precision, recourse_fraction
+    return flipped, precision, recourse_fraction, f1, recall, acc
 
 def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
     """
@@ -232,7 +234,7 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    print_test_results(file_name, model, threshold, weight, data, labels, precision)
+    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
     f = open(file_name, "a")
     print("LAM INIT: {}".format(lam_init), file=f)
@@ -347,7 +349,7 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
     print("--------\n\n", file=f) 
     f.close()
 
-    return flipped_proportion, precision, recourse_fraction
+    return flipped, precision, recourse_fraction, f1, recall, acc
 
 
 def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir):
@@ -389,10 +391,11 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    print_test_results(file_name, model, threshold, weight, data, labels, precision)
+    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
     f = open(file_name, "a")
     print("DELTA MAX: {}".format(delta_max), file=f)
+    print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
 
     loss_fn = torch.nn.BCELoss()
 
@@ -426,7 +429,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     f.write("test min baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))            
     f.close()    
 
-    return flipped, precision, recourse_fraction  
+    return flipped, precision, recourse_fraction, f1, recall, acc
         
 def get_threshold_info(model_dir, weight):
     # this is based on the value of this name in the train function
@@ -434,15 +437,21 @@ def get_threshold_info(model_dir, weight):
     threshold_df = pd.read_csv(best_model_thresholds_file_name, dtype=np.float64, index_col = 'index')
     return threshold_df
 
-def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, precisions, flipped_proportion, recourse_proportion):
+def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, f1s, accuracies, precisions, recalls, flipped_proportion, recourse_proportion):
     thresholds_data = {}
     thresholds_data['thresholds'] = thresholds
+    thresholds_data['f1s'] = f1s
+    thresholds_data['accuracies'] = accuracies
     thresholds_data['precisions'] = precisions
+    thresholds_data['recalls'] = recalls
     thresholds_data['flipped_proportion'] = flipped_proportion
     thresholds_data['recourse_proportion'] = recourse_proportion
 
     thresholds_df = pd.DataFrame(data=thresholds_data)
     thresholds_df['thresholds'] = thresholds_df['thresholds'].round(3)
+
+    thresholds_df = thresholds_df[['thresholds', 'f1s', 'accuracies', 'precisions', 'recalls', 'flipped_proportion', 'recourse_proportion']]
+
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
 def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, \
@@ -474,8 +483,8 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     our_thresholds_file_name = model_dir + "test_eval/" + "our_thresholds_test_results.csv"
 
     # lists in which to store results for diff thresholds
-    wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions = [], [], [], []
-    our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions = [], [], [], []
+    wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
+    our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
 
     # thresholds arg not supplied, read in thresholds from validation evaluation during training and use those
     if thresholds == None:
@@ -486,20 +495,26 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     for threshold in thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
-        our_flipped_proportion, our_precision, our_recourse_fraction = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, data_indices, actionable_indices, model_dir)
+        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, data_indices, actionable_indices, model_dir)
         our_thresholds.append(threshold)
         our_precisions.append(our_precision)
         our_flipped_proportions.append(our_flipped_proportion)
         our_recourse_proportions.append(our_recourse_fraction)
+        our_f1s.append(our_f1)
+        our_recalls.append(our_recall)
+        our_accs.append(our_acc)
 
-        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir)
         wachter_thresholds.append(threshold)
         wachter_precisions.append(wachter_precision)
         wachter_flipped_proportions.append(wachter_flipped_proportion)
         wachter_recourse_proportions.append(wachter_recourse_fraction)
+        wachter_f1s.append(wachter_f1)
+        wachter_recalls.append(wachter_recall)
+        wachter_accs.append(wachter_acc)
 
-    write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions)
-    write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions)
+    write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
+    write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
 
 def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 0.001, max_lam_steps = 10):
@@ -529,6 +544,6 @@ def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 
                   fixed_precisions = fixed_precisions)
         
         else:
-            model = load_torch_model(weight_dir, weight):
+            model = load_torch_model(weight_dir, weight)
 
         run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = lam_init, max_lam_steps = max_lam_steps)
