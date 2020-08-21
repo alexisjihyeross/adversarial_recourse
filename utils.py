@@ -417,6 +417,8 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     thresholds_df = pd.DataFrame(data=thresholds_data)
     thresholds_df['threshold_bounds'] = thresholds_df['threshold_bounds'].round(3)
 
+    print(threshold_bounds)
+
     thresholds_df.to_csv(file_name, index_label='index')
 
 
