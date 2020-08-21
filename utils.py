@@ -411,7 +411,7 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     thresholds_data = {}
     thresholds_data['threshold_bounds'] = threshold_bounds
     thresholds_data['epsilons'] = epsilons
-    thresholds_data['target_percent'] = ds
+    thresholds_data['d'] = ds
 
     thresholds_df = pd.DataFrame(data=thresholds_data)
     thresholds_df['threshold_bounds'] = thresholds_df['threshold_bounds'].round(3)
