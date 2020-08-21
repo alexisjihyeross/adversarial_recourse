@@ -378,7 +378,7 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     if not os.path.exists(test_eval_dir):
         os.makedirs(test_eval_dir)
 
-    file_name = test_eval_dir + str(weight) + '_our_' + str(threshold) + '_threshold_bounds.csv'
+    file_name = test_eval_dir + str(weight) + '_our_threshold_bounds.csv'
 
     model.eval()
 
