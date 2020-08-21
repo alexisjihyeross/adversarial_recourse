@@ -23,4 +23,9 @@ for w in weights_to_eval:
     model = load_torch_model(weight_dir, w)
 
 	# Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
-    run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.005, data_indices = range(0, 250), thresholds = thresholds_to_eval)
+    # run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.005, data_indices = range(0, 250), thresholds = thresholds_to_eval)
+
+    epsilons = [0.7, 0.8, 0.9, 0.95]
+    d = 0.95
+    data_indices = range(0, 250)
+	compute_threshold_upperbounds(model, data['X_test'], data['y_test'], w, delta_max, data_indices, actionable_indices, epsilons, d, weight_dir)
