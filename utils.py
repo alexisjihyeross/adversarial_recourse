@@ -399,13 +399,11 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     probs = np.array(probs)
 
     threshold_bounds = []
-    epsilons = []
     ds = []
 
     for epsilon in epsilons:
         t = compute_t(probs, epsilon, d)
         threshold_bounds.append(t)
-        epsilons.append(epsilon)
         ds.append(d)
 
 
