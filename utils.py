@@ -14,6 +14,7 @@ from onnx2keras import onnx_to_keras
 import logging
 import tensorflow as tf
 from tensorflow import keras
+from compute_threshold_upperbound_utils import *
 
 
 def pred_function(model, np_x):
@@ -350,6 +351,76 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
     f.close()
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
+
+
+
+
+
+
+def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data_indices, actionable_indices, epsilons, d, model_dir):
+    """
+    calculate the optimal delta using linear program
+
+    :param model: pytorch model to evaluate
+    :param X_test: X test data (e.g. adult_data['X_test'])
+    :param y_test: y test data (e.g. adult_data['y_test'])
+    :param weight: weight being evaluated (used to name file)
+    :param threshold: threshold to use in evaluation
+    :param delta_max: parameter defining maximum change in individual feature value
+    :actionable_indices: indices of actionable features
+    :model_dir: model (weight) specific directory within experiment directory
+
+    :returns: 
+    """
+
+    test_eval_dir = model_dir + "test_eval/"
+
+    if not os.path.exists(test_eval_dir):
+        os.makedirs(test_eval_dir)
+
+    file_name = test_eval_dir + str(weight) + '_our_' + str(threshold) + '_threshold_bounds.csv'
+
+    model.eval()
+
+    data = X_test.iloc[data_indices]    
+    labels = y_test.iloc[data_indices]
+
+    torch_data = torch.from_numpy(data.values).float()
+    torch_labels = torch.from_numpy(labels.values)
+
+    probs = []
+
+    for i in range(len(torch_labels)):
+        x = torch_data[i]              # data point
+        y_pred = model(x).item()
+        
+        if y_pred < threshold: #negative pred
+            negative_instances += 1
+            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+            probs.append(model(x + delta_opt))
+
+    probs = np.array(probs)
+
+    threshold_bounds = []
+    epsilons = []
+    ds = []
+
+    for epsilon in epsilons:
+        t = compute_t(probs, epsilon, d)
+        threshold_bounds.append(t)
+        epsilons.append(epsilon)
+        ds.append(d)
+
+
+    thresholds_data = {}
+    thresholds_data['threshold_bounds'] = threshold_bounds
+    thresholds_data['epsilons'] = epsilons
+    thresholds_data['target_percent'] = ds
+
+    thresholds_df = pd.DataFrame(data=thresholds_data)
+    thresholds_df['threshold_bounds'] = thresholds_df['threshold_bounds'].round(3)
+
+    thresholds_df.to_csv(file_name, index_label='index')
 
 
 def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir):
