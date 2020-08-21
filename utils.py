@@ -392,12 +392,9 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
 
     for i in range(len(torch_labels)):
         x = torch_data[i]              # data point
-        y_pred = model(x).item()
         
-        if y_pred < threshold: #negative pred
-            negative_instances += 1
-            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
-            probs.append(model(x + delta_opt))
+        delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+        probs.append(model(x + delta_opt))
 
     probs = np.array(probs)
 
