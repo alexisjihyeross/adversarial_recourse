@@ -64,6 +64,10 @@ def print_test_results(file_name, model, threshold, weight, data, labels, precis
 
     return f1, recall, acc
 
+# def lime_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir):
+#     exp = lime_explainer.explain_instance(x, pred_function(model, , num_features = num_features, num_samples = num_samples)
+
+
 def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
     """
     calculate the optimal delta using linear program
@@ -402,7 +406,7 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     ds = []
 
     for epsilon in epsilons:
-        t = compute_t(probs, epsilon, d)
+        t = compute_t(probs, 1 - epsilon, d)
         threshold_bounds.append(t)
         ds.append(d)
 
