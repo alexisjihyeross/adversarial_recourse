@@ -80,7 +80,7 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
     coefficients = [None] * num_features
     tuple_coefficients = lime_exp.as_list()
     for (feat, coef) in tuple_coefficients:
-        int_feat = int(feat[0])
+        int_feat = int(feat.split("=")[0])
         if int_feat in categorical_features:
             value = int(feat[-1])
             if value == 0:
@@ -91,14 +91,14 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
     return coefficients
 
 
-def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir):
+def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width):
 
-    test_eval_dir = model_dir + "test_eval/"
+    test_eval_dir = model_dir + "test_eval/lime_eval/"
 
     if not os.path.exists(test_eval_dir):
         os.makedirs(test_eval_dir)
 
-    file_name = test_eval_dir + str(weight) + '_berk-lime_' + str(threshold) + '_test.txt'
+    file_name = test_eval_dir + str(weight) + '_berk-lime-' + str(kernel_width) + '_' + str(threshold) + '_test.txt'
 
     model.eval()
     data = X_test.iloc[data_indices]    
@@ -119,9 +119,10 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
     f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
     pred_fn = predict_as_numpy(model)
+
     lime_explainer = lime_tabular.LimeTabularExplainer(data.values, mode="regression", \
-                                categorical_features=categorical_features, \
-                                discretize_continuous=False, feature_selection='none')
+                                categorical_features=categorical_features, discretize_continuous=False, \
+                                kernel_width = kernel_width, feature_selection='none')
 
     action_set = ActionSet(X_train)
 
@@ -130,6 +131,7 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
             action_set[feat].mutable = False
 
     f = open(file_name, "a")
+    print("kernel width: {}".format(kernel_width), file=f)
     print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
     f.close()
 
@@ -372,7 +374,7 @@ def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, f1
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
 def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, \
-    thresholds = None, lam_init = 0.01, max_lam_steps = 10, data_indices = range(0, 500)):
+    thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 500)):
     """
     Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
 
@@ -477,6 +479,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     f = open(file_name, "a")
     print("LAM INIT: {}".format(lam_init), file=f)
+    print("MAX LAM STEPS: {}".format(max_lam_steps), file=f)
     print("DELTA MAX: {}".format(delta_max), file=f)
     print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
     f.close()
