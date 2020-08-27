@@ -265,7 +265,7 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     thresholds_df.to_csv(file_name, index_label='index')
 
 
-def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir):
+def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
     """
     calculate the optimal delta using linear program
 
@@ -306,9 +306,10 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
 
     f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
-    f = open(file_name, "a")
-    print("DELTA MAX: {}".format(delta_max), file=f)
-    print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
+    if do_print_individual_files:
+        f = open(file_name, "a")
+        print("DELTA MAX: {}".format(delta_max), file=f)
+        print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
 
     loss_fn = torch.nn.BCELoss()
 
@@ -332,21 +333,22 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     else:
         flipped_proportion = 0
 
-    f.write("\nlen(test): {}".format(len(labels)))
-    if negative_instances != 0:
-        f.write("\nflipped/negative: {}, {}/{}".format(flipped_proportion, flipped, negative_instances))
-    else:
-        f.write("\nflipped/negative: {}, {}/{}".format('NA', flipped, negative_instances))
-    f.write("\nportion of all instances with recourse: {} (includes pos preds)".format(recourse_fraction))
-    f.write('\n\nBASELINE STATS: ')
-    maj_label = 0.0
-    min_label = 1.0
-    maj_baseline_preds = (np.full(y_true.shape, maj_label)).ravel().tolist()
-    min_baseline_preds = (np.full(y_true.shape, min_label)).ravel().tolist()
-    f.write("\ntest maj ({}) baseline accuracy: {}\n".format(maj_label, round(np.sum(maj_baseline_preds == y_true)/(y_true).shape[0], 3)))
-    f.write("test min ({}) baseline accuracy: {}\n".format(min_label, round(np.sum(min_baseline_preds == y_true)/(y_true).shape[0], 3)))
-    f.write("test min baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))            
-    f.close()    
+    if do_print_individual_files:
+        f.write("\nlen(test): {}".format(len(labels)))
+        if negative_instances != 0:
+            f.write("\nflipped/negative: {}, {}/{}".format(flipped_proportion, flipped, negative_instances))
+        else:
+            f.write("\nflipped/negative: {}, {}/{}".format('NA', flipped, negative_instances))
+        f.write("\nportion of all instances with recourse: {} (includes pos preds)".format(recourse_fraction))
+        f.write('\n\nBASELINE STATS: ')
+        maj_label = 0.0
+        min_label = 1.0
+        maj_baseline_preds = (np.full(y_true.shape, maj_label)).ravel().tolist()
+        min_baseline_preds = (np.full(y_true.shape, min_label)).ravel().tolist()
+        f.write("\ntest maj ({}) baseline accuracy: {}\n".format(maj_label, round(np.sum(maj_baseline_preds == y_true)/(y_true).shape[0], 3)))
+        f.write("test min ({}) baseline accuracy: {}\n".format(min_label, round(np.sum(min_baseline_preds == y_true)/(y_true).shape[0], 3)))
+        f.write("test min baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))            
+        f.close()    
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
         
@@ -435,7 +437,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
-def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
+def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
     """
     calculate the optimal delta using linear program
 
@@ -477,12 +479,13 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
 
-    f = open(file_name, "a")
-    print("LAM INIT: {}".format(lam_init), file=f)
-    print("MAX LAM STEPS: {}".format(max_lam_steps), file=f)
-    print("DELTA MAX: {}".format(delta_max), file=f)
-    print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
-    f.close()
+    if do_print_individual_files:
+        f = open(file_name, "a")
+        print("LAM INIT: {}".format(lam_init), file=f)
+        print("MAX LAM STEPS: {}".format(max_lam_steps), file=f)
+        print("DELTA MAX: {}".format(delta_max), file=f)
+        print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
+        f.close()
 
     # consider all lams from lam_init/10 to lam_init; 
     #if cannot find any counterfactual instances using those values, i am assuming it is an unsolvable problem
@@ -558,12 +561,13 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     assert(num_neg_instances == neg_preds)
     assert((pos_preds + num_neg_instances) == len(y_pred))
     
-    f = open(file_name, "a")
-    print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
-    print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
-    print("proportion with recourse: {}".format(recourse_fraction), file=f)
-    print("--------\n\n", file=f) 
-    f.close()
+    if do_print_individual_files:
+        f = open(file_name, "a")
+        print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
+        print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
+        print("proportion with recourse: {}".format(recourse_fraction), file=f)
+        print("--------\n\n", file=f) 
+        f.close()
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
@@ -754,3 +758,91 @@ def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 
             model = load_torch_model(weight_dir, weight)
 
         run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = lam_init, max_lam_steps = max_lam_steps)
+
+
+def run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
+    thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 500)):
+
+    # define the data indices to consider
+    model_dir = experiment_dir + str(w) + "/"
+
+
+
+
+    white_data = data['X_test'].loc[data['X_test'][white_feature_name] == 1]
+    minority_data = data['X_test'].loc[data['X_test'][white_feature_name] == 0]
+
+    white_labels = data['y_test'][data['y_test'].index.isin(white_data.index)]
+    minority_labels = data['y_test'][data['y_test'].index.isin(minority_data.index)]
+
+
+
+    # lists in which to store results for diff thresholds
+    wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
+    our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
+
+    print("THRESHOLDS: ", thresholds)
+    # WHITE DATA:
+
+    # name of file where to output all results for different thresholds
+    wachter_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "WHITE_wachter_thresholds_test_results.csv"
+
+    # name of file where to output all results for different thresholds
+    our_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "WHITE_our_thresholds_test_results.csv"
+
+    for threshold in thresholds:
+        threshold = round(threshold, 3)
+        print("THR: ", threshold)
+
+        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, white_data, white_labels, w, threshold, delta_max, data_indices, actionable_indices, model_dir, do_print_individual_files = False)
+        our_thresholds.append(threshold)
+        our_precisions.append(our_precision)
+        our_flipped_proportions.append(our_flipped_proportion)
+        our_recourse_proportions.append(our_recourse_fraction)
+        our_f1s.append(our_f1)
+        our_recalls.append(our_recall)
+        our_accs.append(our_acc)
+
+        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = False)
+        # wachter_thresholds.append(threshold)
+        # wachter_precisions.append(wachter_precision)
+        # wachter_flipped_proportions.append(wachter_flipped_proportion)
+        # wachter_recourse_proportions.append(wachter_recourse_fraction)
+        # wachter_f1s.append(wachter_f1)
+        # wachter_recalls.append(wachter_recall)
+        # wachter_accs.append(wachter_acc)
+
+    # write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
+    write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
+                    
+    # name of file where to output all results for different thresholds
+    wachter_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "MINORITY_wachter_thresholds_test_results.csv"
+
+    # name of file where to output all results for different thresholds
+    our_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "MINORITY_our_thresholds_test_results.csv"
+
+    for threshold in thresholds:
+        threshold = round(threshold, 3)
+        print("THR: ", threshold)
+
+        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, minority_data, minority_labels, w, threshold, delta_max, data_indices, actionable_indices, model_dir, do_print_individual_files = False)
+        our_thresholds.append(threshold)
+        our_precisions.append(our_precision)
+        our_flipped_proportions.append(our_flipped_proportion)
+        our_recourse_proportions.append(our_recourse_fraction)
+        our_f1s.append(our_f1)
+        our_recalls.append(our_recall)
+        our_accs.append(our_acc)
+
+        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = False)
+        # wachter_thresholds.append(threshold)
+        # wachter_precisions.append(wachter_precision)
+        # wachter_flipped_proportions.append(wachter_flipped_proportion)
+        # wachter_recourse_proportions.append(wachter_recourse_fraction)
+        # wachter_f1s.append(wachter_f1)
+        # wachter_recalls.append(wachter_recall)
+        # wachter_accs.append(wachter_acc)
+
+    # write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
+    write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
+                    
