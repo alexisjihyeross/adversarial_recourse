@@ -16,16 +16,20 @@ delta_max = 0.75
 data = bail_data
 experiment_dir = bail_experiment_dir
 actionable_indices = bail_actionable_indices
+categorical_features = bail_categorical_features
+
 
 for w in weights_to_eval:
     print("WEIGHT: ", w)    
     weight_dir = experiment_dir + str(w) + "/"
     model = load_torch_model(weight_dir, w)
 
-	# Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
+    # Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
     # run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.005, data_indices = range(0, 250), thresholds = thresholds_to_eval)
 
     epsilons = [0.7, 0.8, 0.9, 0.95]
     d = 0.95
     data_indices = range(0, 250)
-    compute_threshold_upperbounds(model, data['X_test'], data['y_test'], w, delta_max, data_indices, actionable_indices, epsilons, d, weight_dir)
+    # compute_threshold_upperbounds(model, data['X_test'], data['y_test'], w, delta_max, data_indices, actionable_indices, epsilons, d, weight_dir)
+    for threshold in thresholds_to_eval:
+        lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir)

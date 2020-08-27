@@ -1,19 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import tensorflow
 
 import torch.onnx
 
 import onnx
 from onnx_tf.backend import prepare
-
-
-def load_torch_model(weight_dir, weight):
-	model_name = weight_dir + str(weight) + '_best_model.pt'
-	model = torch.load(model_name)
-	model.eval()
-	return model
 
 def save_model_as_onxx(model, dummy_input, weight_dir, weight):
 	model_name = weight_dir + str(weight) + '_best_model.onnx'
