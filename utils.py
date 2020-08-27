@@ -105,6 +105,19 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
     labels = y_test.iloc[data_indices]
 
 
+    torch_data = torch.from_numpy(data.values).float()
+    torch_labels = torch.from_numpy(labels.values)
+
+    # this part is redundant with print_test_results
+    y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
+    y_true = ((torch_labels).detach().numpy())
+    y_prob_pred = model(torch_data).detach().numpy()
+    precision = round(precision_score(y_true, y_pred), 3)
+    pos_preds = np.sum(y_pred)
+    neg_preds = len(y_pred) - pos_preds
+
+    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
+
     pred_fn = predict_as_numpy(model)
     lime_explainer = lime_tabular.LimeTabularExplainer(data.values, mode="regression", \
                                 categorical_features=categorical_features, \
@@ -124,9 +137,9 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
     neg_test_preds = np.nonzero(scores < threshold)[0]
 
-    num_no_recourses = 0
     num_neg_instances = 0
     num_errors = 0
+    flipped = 0
 
     weight_dir = model_dir
 
@@ -139,9 +152,9 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
         sample = data.iloc[i].values
     
-        num_neg += 1
-        exp = lime_explainer.explain_instance(x, pred_fn)
-        coefficients = get_lime_coefficients(exp, categorical_features, num_features)
+        num_neg_instances += 1
+        exp = lime_explainer.explain_instance(sample, pred_fn)
+        coefficients = get_lime_coefficients(exp, categorical_features, len(sample))
         intercept = exp.intercept[0]
 
         # subtract bc flipset treats > 0 as positive and < 0 as negative
@@ -149,19 +162,17 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
         action_set.align(coefficients=coefficients)
 
-        fb = Flipset(x = x, action_set = action_set, coefficients = coefficients, intercept = intercept)
+        fb = Flipset(x = sample, action_set = action_set, coefficients = coefficients, intercept = intercept)
 
         try:
             fb = fb.populate(enumeration_type = 'distinct_subsets', total_items = 1)
             action = (fb.items[0]['actions'])
-            if pred_fn(x + action)[0] > threshold:
+            if pred_fn(sample + action)[0] > threshold:
                 flipped += 1
         except:
             print("exception")
             num_errors += 1
     
-        num_neg_instances += 1
-
     num_with_recourses = num_neg_instances - num_errors
 
     num_pos_instances = len(data.values) - num_neg_instances
@@ -174,9 +185,9 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
         flipped_proportion = 0
         none_returned_proportion = 0
 
-    recourse_fraction = round((num_pos_instances + flipped)/len(y_pred), 3)
+    recourse_fraction = round((num_pos_instances + flipped)/len(scores), 3)
     
-    assert((num_pos_instances + num_neg_instances) == len(y_pred))
+    assert((num_pos_instances + num_neg_instances) == len(scores))
     
     f = open(file_name, "a")
     print("num none returned (errors): {}/{}, {}".format(num_errors, num_neg_instances, none_returned_proportion), file=f)
@@ -184,6 +195,8 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
     print("proportion with recourse: {}".format(recourse_fraction), file=f)
     print("--------\n\n", file=f) 
     f.close()
+
+    return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
 
 def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data_indices, actionable_indices, epsilons, d, model_dir):

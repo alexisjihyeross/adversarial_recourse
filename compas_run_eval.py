@@ -32,5 +32,22 @@ for w in weights_to_eval:
     data_indices = range(0, 250)
     # compute_threshold_upperbounds(model, data['X_test'], data['y_test'], w, delta_max, data_indices, actionable_indices, epsilons, d, weight_dir)
 
+    lime_thresholds, lime_precisions, lime_flipped_proportions, lime_recourse_proportions, lime_f1s, lime_recalls, lime_accs = [], [], [], [], [], [], []
+
     for threshold in thresholds_to_eval:
-            lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir)
+        threshold = round(threshold, 3)
+        print("THR: ", threshold)
+
+        flipped_proportion, precision, recourse_fraction, f1, recall, acc = lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir)
+        lime_thresholds.append(threshold)
+        lime_precisions.append(precision)
+        lime_flipped_proportions.append(flipped_proportion)
+        lime_recourse_proportions.append(recourse_fraction)
+        lime_f1s.append(f1)
+        lime_recalls.append(recall)
+        lime_accs.append(acc)
+
+    file_name = model_dir + "test_eval/" + "lime-berk_thresholds_test_results.csv"
+
+    write_threshold_info(weight_dir, w, file_name, lime_thresholds, lime_f1s, lime_accs, lime_precisions, lime_recalls, lime_flipped_proportions, lime_recourse_proportions)
+
