@@ -290,8 +290,14 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
 
     model.eval()
 
-    data = X_test.iloc[data_indices]    
-    labels = y_test.iloc[data_indices]
+    #TODO: this is hacky; but we only need this part for minority evaluate
+    if data_indices != None:
+        data = X_test.iloc[data_indices]    
+        labels = y_test.iloc[data_indices]
+
+    else:
+        data = X_test
+        labels = y_test
 
     torch_data = torch.from_numpy(data.values).float()
     torch_labels = torch.from_numpy(labels.values)
@@ -760,14 +766,14 @@ def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 
         run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = lam_init, max_lam_steps = max_lam_steps)
 
 
-def run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
+def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
     thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 500)):
 
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"
 
-    data = data['X_test'].iloc[data_indices]  
-    labels = data['y_test'].iloc[data_indices]  
+    data = dict_data['X_test'].iloc[data_indices]  
+    labels = dict_data['y_test'].iloc[data_indices]  
 
     white_data = data.loc[data[white_feature_name] == 1]
     minority_data = data.loc[data[white_feature_name] == 0]
@@ -792,7 +798,7 @@ def run_minority_evaluate(model, data, w, delta_max, actionable_indices, experim
         threshold = round(threshold, 3)
         print("THR: ", threshold)
 
-        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, white_data, white_labels, w, threshold, delta_max, range(0, len(white_data)), actionable_indices, model_dir, do_print_individual_files = False)
+        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, white_data, white_labels, w, threshold, delta_max, None, actionable_indices, model_dir, do_print_individual_files = False)
         our_thresholds.append(threshold)
         our_precisions.append(our_precision)
         our_flipped_proportions.append(our_flipped_proportion)
@@ -801,7 +807,7 @@ def run_minority_evaluate(model, data, w, delta_max, actionable_indices, experim
         our_recalls.append(our_recall)
         our_accs.append(our_acc)
 
-        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, range(0, len(white_data)), actionable_indices, model_dir, do_print_individual_files = False)
+        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
         # wachter_thresholds.append(threshold)
         # wachter_precisions.append(wachter_precision)
         # wachter_flipped_proportions.append(wachter_flipped_proportion)
@@ -823,7 +829,7 @@ def run_minority_evaluate(model, data, w, delta_max, actionable_indices, experim
         threshold = round(threshold, 3)
         print("THR: ", threshold)
 
-        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, minority_data, minority_labels, w, threshold, delta_max, range(0, len(minority_data)), actionable_indices, model_dir, do_print_individual_files = False)
+        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, minority_data, minority_labels, w, threshold, delta_max, None, actionable_indices, model_dir, do_print_individual_files = False)
         our_thresholds.append(threshold)
         our_precisions.append(our_precision)
         our_flipped_proportions.append(our_flipped_proportion)
@@ -832,7 +838,7 @@ def run_minority_evaluate(model, data, w, delta_max, actionable_indices, experim
         our_recalls.append(our_recall)
         our_accs.append(our_acc)
 
-        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, range(0, len(white_data)), actionable_indices, model_dir, do_print_individual_files = False)
+        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
         # wachter_thresholds.append(threshold)
         # wachter_precisions.append(wachter_precision)
         # wachter_flipped_proportions.append(wachter_flipped_proportion)
