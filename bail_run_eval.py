@@ -11,7 +11,7 @@ bail_experiment_dir = 'new_results/0815_bail/'
 bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names = process_bail_data()
 bail_data = read_data(bail_experiment_dir)
 
-delta_max = 0.75
+delta_max = 0.5
 
 data = bail_data
 experiment_dir = bail_experiment_dir
@@ -24,35 +24,12 @@ for w in weights_to_eval:
     weight_dir = experiment_dir + str(w) + "/"
     model = load_torch_model(weight_dir, w)
 
-    # Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
-    # run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.005, data_indices = range(0, 250), thresholds = thresholds_to_eval)
+    # Runs wachter + our evaluation + lime evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
+    run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = 0.005, data_indices = range(0, 250), thresholds = thresholds_to_eval)
 
-    epsilons = [0.7, 0.8, 0.9, 0.95]
-    d = 0.95
-    data_indices = range(0, 250)
+    # epsilons = [0.7, 0.8, 0.9, 0.95]
+    # d = 0.95
+    # data_indices = range(0, 250)
     # compute_threshold_upperbounds(model, data['X_test'], data['y_test'], w, delta_max, data_indices, actionable_indices, epsilons, d, weight_dir)
     
-    kernel_widths = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
-
-    for kw in kernel_widths:
-        lime_thresholds, lime_precisions, lime_flipped_proportions, lime_recourse_proportions, lime_f1s, lime_recalls, lime_accs = [], [], [], [], [], [], []
-
-
-        for threshold in thresholds_to_eval:
-            threshold = round(threshold, 3)
-            print("THR: ", threshold)
-
-            flipped_proportion, precision, recourse_fraction, f1, recall, acc = lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width = kw)
-            lime_thresholds.append(threshold)
-            lime_precisions.append(precision)
-            lime_flipped_proportions.append(flipped_proportion)
-            lime_recourse_proportions.append(recourse_fraction)
-            lime_f1s.append(f1)
-            lime_recalls.append(recall)
-            lime_accs.append(acc)
-
-        file_name = weight_dir + "test_eval/lime_eval/" + "lime-berk-kw-" + str(kw) +  "_thresholds_test_results.csv"
-
-        write_threshold_info(weight_dir, w, file_name, lime_thresholds, lime_f1s, lime_accs, lime_precisions, lime_recalls, lime_flipped_proportions, lime_recourse_proportions)
-
-
+    # kernel_widths = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]

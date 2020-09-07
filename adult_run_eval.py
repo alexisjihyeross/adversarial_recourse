@@ -18,6 +18,8 @@ experiment_dir = adult_experiment_dir
 actionable_indices = adult_actionable_indices
 categorical_features = adult_categorical_features
 
+
+
 for w in weights_to_eval:
     print("WEIGHT: ", w)    
     weight_dir = experiment_dir + str(w) + "/"
@@ -52,6 +54,8 @@ for w in weights_to_eval:
             lime_accs.append(acc)
 
         file_name = weight_dir + "test_eval/lime_eval/" + "lime-berk-kw-" + str(kw) +  "_thresholds_test_results.csv"
+
+
 
         write_threshold_info(weight_dir, w, file_name, lime_thresholds, lime_f1s, lime_accs, lime_precisions, lime_recalls, lime_flipped_proportions, lime_recourse_proportions)
 

@@ -231,5 +231,8 @@ def read_data(output_dir):
     (data['y_val']) = pd.read_csv(data_dir + 'y_val.csv', dtype=np.float64, index_col = 'index')['label']
     (data['y_test']) = pd.read_csv(data_dir + 'y_test.csv', dtype=np.float64, index_col = 'index')['label']
 
+    for x in ['X_train', 'X_val', 'X_test', 'y_train', 'y_val', 'y_test']:
+        data[x].index = data[x].index.astype(int)
+
     return data
 

@@ -30,7 +30,7 @@ def pred_function(model, np_x):
     probs = np.concatenate((model_pred, 1-model_pred), axis=1)
     return probs
 
-def print_test_results(file_name, model, threshold, weight, data, labels, precision):
+def print_test_results(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = True):
     """
     prints test metrics (for wachter_evaluate and our_evaluate) in file file_name
 
@@ -57,17 +57,18 @@ def print_test_results(file_name, model, threshold, weight, data, labels, precis
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
     
-    f = open(file_name, "w")
-    
-    print("WEIGHT: {}".format(weight), file=f)
-    print("THRESHOLD: {}".format(threshold), file=f)
-    print("# pos preds: ", pos_preds, file=f)
-    print("# neg preds: ", neg_preds, file=f)
-    print("f1: ", f1, file=f)
-    print("precision: ", precision, file=f)
-    print("recall: ", recall, file=f)
-    print("acc: ", acc, file=f)
-    f.close()
+    if do_print_individual_files:
+        f = open(file_name, "w")
+        
+        print("WEIGHT: {}".format(weight), file=f)
+        print("THRESHOLD: {}".format(threshold), file=f)
+        print("# pos preds: ", pos_preds, file=f)
+        print("# neg preds: ", neg_preds, file=f)
+        print("f1: ", f1, file=f)
+        print("precision: ", precision, file=f)
+        print("recall: ", recall, file=f)
+        print("acc: ", acc, file=f)
+        f.close()
 
     return f1, recall, acc
 
@@ -174,6 +175,7 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
         except:
             print("exception")
             num_errors += 1
+            continue
     
     num_with_recourses = num_neg_instances - num_errors
 
@@ -200,6 +202,27 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
+def get_f1(model, X_test, y_test, data_indices, w, threshold, delta_max):
+
+    #TODO: this is hacky; but we only need this part for minority evaluate
+    if data_indices != None:
+        data = X_test.iloc[data_indices]    
+        labels = y_test.iloc[data_indices]
+
+    else:
+        data = X_test
+        labels = y_test
+
+    torch_data = torch.from_numpy(data.values).float()
+    torch_labels = torch.from_numpy(labels.values)
+    
+    y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
+    y_true = ((torch_labels).detach().numpy())
+    y_prob_pred = model(torch_data).detach().numpy()
+    
+    f1 = round(f1_score(y_true, y_pred), 3)
+
+    return f1
 
 def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data_indices, actionable_indices, epsilons, d, model_dir):
     """
@@ -310,7 +333,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
+    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = do_print_individual_files)
 
     if do_print_individual_files:
         f = open(file_name, "a")
@@ -381,8 +404,9 @@ def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, f1
 
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
-def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, \
-    thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 500)):
+def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_features, \
+    experiment_dir, thresholds = None, lam_init = 0.005, max_lam_steps = 50, \
+    data_indices = range(0, 250), only_eval_at_max_f1 = False, lime_kw = 0.75):
     """
     Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
 
@@ -409,6 +433,8 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
     # name of file where to output all results for different thresholds
     our_thresholds_file_name = model_dir + "test_eval/" + "our_thresholds_test_results.csv"
 
+    lime_thresholds_file_name = model_dir + "test_eval/lime_eval/" + "lime-berk-kw-" + str(lime_kw) +  "_thresholds_test_results.csv"
+
     # lists in which to store results for diff thresholds
     wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
     our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
@@ -418,8 +444,19 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
         threshold_df = get_threshold_info(model_dir, w)
         thresholds = list(threshold_df['thresholds'])
 
+    f1s = []
+    if only_eval_at_max_f1:
+        for threshold in thresholds:
+            f1s.append(get_f1(model, data['X_test'], data['y_test'], data_indices, w, threshold, delta_max))
+
+        # only evaluate at the threshold that maximizes f1 score
+        eval_thresholds = [thresholds[np.argmax(f1s)]]
+
+    else:
+        eval_thresholds = thresholds
+
     print("THRESHOLDS: ", thresholds)
-    for threshold in thresholds:
+    for threshold in eval_thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
         our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, data_indices, actionable_indices, model_dir)
@@ -440,8 +477,20 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, 
         wachter_recalls.append(wachter_recall)
         wachter_accs.append(wachter_acc)
 
+        lime_thresholds, lime_precisions, lime_flipped_proportions, lime_recourse_proportions, lime_f1s, lime_recalls, lime_accs = [], [], [], [], [], [], []
+
+        lime_flipped_proportion, lime_precision, lime_recourse_fraction, lime_f1, lime_recall, lime_acc = lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width = lime_kw)
+        lime_thresholds.append(lime_threshold)
+        lime_precisions.append(lime_precision)
+        lime_flipped_proportions.append(lime_flipped_proportion)
+        lime_recourse_proportions.append(lime_recourse_fraction)
+        lime_f1s.append(lime_f1)
+        lime_recalls.append(lime_recall)
+        lime_accs.append(lime_acc)
+
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
+    write_threshold_info(model_dir, w, lime_thresholds_file_name, lime_thresholds, lime_f1s, lime_accs, lime_precisions, lime_recalls, lime_flipped_proportions, lime_recourse_proportions)
                     
 def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
     """
@@ -469,8 +518,14 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     file_name = test_eval_dir + str(weight) + '_wachter_' + str(threshold) + '_test.txt'
 
     model.eval()
-    data = X_test.iloc[data_indices]    
-    labels = y_test.iloc[data_indices]
+
+    if data_indices != None:
+        data = X_test.iloc[data_indices]    
+        labels = y_test.iloc[data_indices]
+
+    else:
+        data = X_test
+        labels = y_test
 
     torch_data = torch.from_numpy(data.values).float()
     torch_labels = torch.from_numpy(labels.values)
@@ -483,7 +538,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
+    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = do_print_individual_files)
 
     if do_print_individual_files:
         f = open(file_name, "a")
@@ -734,16 +789,14 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 0.001, max_lam_steps = 10):
+def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.005, max_lam_steps = 10, thresholds_to_eval = None):
     
     lr = 0.002 # changed this for compas training
-    delta_max = 0.75
     fixed_precisions = [0.4, 0.5, 0.6, 0.7]
     fixed_precisions = []
 
-    weight_dir = experiment_dir + str(w) + "/"
-
     for w in weights:
+        weight_dir = experiment_dir + str(w) + "/"
         print("WEIGHT: ", w)
         print(data['X_train'].values[0])
         model = SmallModel(len(data['X_train'].values[0]))
@@ -757,26 +810,42 @@ def run(data, actionable_indices, experiment_dir, weights, do_train, lam_init = 
             # train the model
             train(model, torch_X_train, torch_y_train, \
                  torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-                  recourse_loss_weight = w, num_epochs = 1, delta_max = delta_max, lr=lr, \
+                  recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr, \
                   fixed_precisions = fixed_precisions)
+            print("DONE TRAINING")
         
         else:
             model = load_torch_model(weight_dir, weight)
 
-        run_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, lam_init = lam_init, max_lam_steps = max_lam_steps)
+        print("RUNNING EVALUTE")
+        run_evaluate(model, data, w, delta_max, actionable_indices, categorical_features, experiment_dir, lam_init = lam_init, \
+            data_indices = range(0, 250), thresholds = thresholds_to_eval, max_lam_steps = max_lam_steps, \
+            only_eval_at_max_f1 = True)
 
+        print("DONE EVALUATING FOR WEIGHT: ", w)
 
 def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
-    thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 500)):
+    thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 250), minority_indices = [], white_indices = []):
 
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"
 
+    out_dir = model_dir + "test_eval/minority_exp/"
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
     data = dict_data['X_test'].iloc[data_indices]  
     labels = dict_data['y_test'].iloc[data_indices]  
 
-    white_data = data.loc[data[white_feature_name] == 1]
-    minority_data = data.loc[data[white_feature_name] == 0]
+    # only true for adult dataset
+    if minority_indices != [] and white_indices != []:
+        assert (white_feature_name == "index")  # "index" only used for adult dataset
+        white_data = data.loc[data.index.isin(white_indices)]
+        minority_data = data.loc[data.index.isin(minority_indices)]
+
+    else:
+        white_data = data.loc[data[white_feature_name] == 1]
+        minority_data = data.loc[data[white_feature_name] == 0]
 
     white_labels = labels[labels.index.isin(white_data.index)]
     minority_labels = labels[labels.index.isin(minority_data.index)]
@@ -819,11 +888,16 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     # write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
-    # name of file where to output all results for different thresholds
-    wachter_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "MINORITY_wachter_thresholds_test_results.csv"
+
+    wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
+    our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
+
 
     # name of file where to output all results for different thresholds
-    our_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "MINORITY_our_thresholds_test_results.csv"
+    wachter_thresholds_file_name = out_dir + "MINORITY_wachter_thresholds_test_results.csv"
+
+    # name of file where to output all results for different thresholds
+    our_thresholds_file_name = out_dir + "MINORITY_our_thresholds_test_results.csv"
 
     for threshold in thresholds:
         threshold = round(threshold, 3)

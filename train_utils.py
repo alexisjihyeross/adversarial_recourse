@@ -164,7 +164,6 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
                  == ((y_train).detach().numpy()))/((y_train).detach().numpy()).shape[0]), 3)))
     training_file.close()
 
-    val_flipped_proportion = round(val_flipped/num_negative, 3)
     val_recourse_proportion = round((val_flipped + num_positive)/len(y_val), 3)
 
     if best_epoch:
@@ -177,12 +176,12 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
         text_file.write("val f1: " + str(round(val_f1, 3)) + "\n")
         text_file.write("val precision: " + str(round(val_precision, 3)) + "\n")
         text_file.write("val recall: " + str(round(val_recall, 3)) + "\n")
-        text_file.write("val num flipped: {}; {}/{}\n".format(val_flipped_proportion, val_flipped, num_negative))
+        text_file.write("val num flipped: {}; {}/{}\n".format(val_proportion_flipped, val_flipped, num_negative))
         text_file.write("val num with recourse: {}; {}/{}\n".format(val_recourse_proportion, (val_flipped + num_positive), len(y_val)))
         text_file.write("-------------------\n\n")
         text_file.close()
 
-    return val_precision, val_recourse_proportion, val_flipped_proportion
+    return val_precision, val_recourse_proportion, val_proportion_flipped
 
 def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_dir, \
           num_epochs = 12, delta_max = 1.0, batch_size = 10, lr = 0.002, \
@@ -307,15 +306,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
 
         # add custom thresholds
-        prec_thresholds.append(0.35)
-        prec_thresholds.append(0.4)
-        prec_thresholds.append(0.45)
-        prec_thresholds.append(0.5)
-        prec_thresholds.append(0.55)
-        prec_thresholds.append(0.6)
-        prec_thresholds.append(0.65)
-        prec_thresholds.append(0.7)
-        prec_thresholds.append(0.75)
+        prec_thresholds.extend([0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7])
 
         # FOR VAL
         flipped_epoch_by_threshold = [0 for a in prec_thresholds]
