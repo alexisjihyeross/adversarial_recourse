@@ -27,7 +27,7 @@ def process_compas_data():
                               (compas_df['score_text'] != "NA")]
 
     compas_df['length_of_stay'] = (pd.to_datetime(compas_df['c_jail_out']) - pd.to_datetime(compas_df['c_jail_in'])).dt.days
-    compas_X = compas_df[['age', 'two_year_recid','c_charge_degree', 'race', 'sex', 'priors_count', 'length_of_stay']]
+    compas_X = compas_df[['age', 'c_charge_degree', 'race', 'sex', 'priors_count', 'length_of_stay']]
 
 
     compas_X['isMale'] = compas_X.apply(lambda row: 1 if 'Male' in row['sex'] else 0, axis=1)
@@ -36,11 +36,10 @@ def process_compas_data():
     compas_X = compas_X.drop(['sex', 'race', 'c_charge_degree'], axis=1)
 
     # if person has high score give them the _negative_ model outcome
-    compas_df['label'] = compas_df.apply(lambda row: 0.0 if row['score_text'] == 'High' else 1.0, axis=1)
+    compas_df['label'] = compas_df.apply(lambda row: 0.0 if row['two_year_recid'] == 0 else 1.0, axis=1)
     compas_y = compas_df['label']
-    print(compas_y)
 
-    compas_categorical_features = [1, 4, 5, 6]
+    compas_categorical_features = [3, 4, 5]
 
     columns = compas_X.columns
     compas_categorical_names = [columns[i] for i in compas_categorical_features] 
@@ -51,7 +50,7 @@ def process_compas_data():
             compas_X[col] = (compas_X[col] - compas_X[col].mean(axis=0)) / compas_X[col].std(axis=0)
 
 
-    compas_actionable_indices = [0, 2, 3]
+    compas_actionable_indices = [0, 1,]
     return compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names
 
 

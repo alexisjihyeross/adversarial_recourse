@@ -5,7 +5,7 @@ from big_model import *
 from utils import *
 
 bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names = process_bail_data()
-bail_experiment_dir = 'new_results/0903_bail_0.5/'
+bail_experiment_dir = 'new_results/0907_bail_0.5/'
 
 bail_data = get_data(bail_X, bail_y)
 write_data(bail_data, bail_experiment_dir)

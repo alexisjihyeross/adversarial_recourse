@@ -477,20 +477,20 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_feat
         wachter_recalls.append(wachter_recall)
         wachter_accs.append(wachter_acc)
 
-        lime_thresholds, lime_precisions, lime_flipped_proportions, lime_recourse_proportions, lime_f1s, lime_recalls, lime_accs = [], [], [], [], [], [], []
+        # lime_thresholds, lime_precisions, lime_flipped_proportions, lime_recourse_proportions, lime_f1s, lime_recalls, lime_accs = [], [], [], [], [], [], []
 
-        lime_flipped_proportion, lime_precision, lime_recourse_fraction, lime_f1, lime_recall, lime_acc = lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width = lime_kw)
-        lime_thresholds.append(lime_threshold)
-        lime_precisions.append(lime_precision)
-        lime_flipped_proportions.append(lime_flipped_proportion)
-        lime_recourse_proportions.append(lime_recourse_fraction)
-        lime_f1s.append(lime_f1)
-        lime_recalls.append(lime_recall)
-        lime_accs.append(lime_acc)
+        # lime_flipped_proportion, lime_precision, lime_recourse_fraction, lime_f1, lime_recall, lime_acc = lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width = lime_kw)
+        # lime_thresholds.append(lime_threshold)
+        # lime_precisions.append(lime_precision)
+        # lime_flipped_proportions.append(lime_flipped_proportion)
+        # lime_recourse_proportions.append(lime_recourse_fraction)
+        # lime_f1s.append(lime_f1)
+        # lime_recalls.append(lime_recall)
+        # lime_accs.append(lime_acc)
 
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
-    write_threshold_info(model_dir, w, lime_thresholds_file_name, lime_thresholds, lime_f1s, lime_accs, lime_precisions, lime_recalls, lime_flipped_proportions, lime_recourse_proportions)
+    # write_threshold_info(model_dir, w, lime_thresholds_file_name, lime_thresholds, lime_f1s, lime_accs, lime_precisions, lime_recalls, lime_flipped_proportions, lime_recourse_proportions)
                     
 def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
     """

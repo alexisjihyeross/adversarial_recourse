@@ -5,8 +5,8 @@ from big_model import *
 from utils import *
 
 adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names = process_adult_data()
-adult_experiment_dir = 'new_results/0903_adult_0.5/'
-adult_data = read_data(adult_experiment_dir)
+adult_experiment_dir = 'new_results/0907_adult_0.5/'
+# adult_data = read_data(adult_experiment_dir)
 
 adult_data = get_data(adult_X, adult_y)
 write_data(adult_data, adult_experiment_dir)
