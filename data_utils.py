@@ -70,6 +70,7 @@ def process_adult_data():
                                               'capital-gain','capital-loss','hours-per-week','native-country','label']
 
     adult_df = adult_df.dropna()
+    adult_df['isWhite'] = adult_df.apply(lambda row: 1 if 'White' in row['race'] else 0, axis=1)
     adult_df['native-country-United-States'] = adult_df.apply(lambda row: 1 if 'United-States' in row['native-country'] else 0, axis=1)
     adult_df['marital-status-Married'] = adult_df.apply(lambda row: 1 if 'Married' in row['marital-status'] else 0, axis=1)
     adult_df['isMale'] = adult_df.apply(lambda row: 1 if 'Male' in row['sex'] else 0, axis=1)
@@ -83,7 +84,7 @@ def process_adult_data():
     adult_y = adult_y.replace(' >50K', 1.0)
 
     # define the categorical features
-    adult_categorical_features = [5, 6, 7]
+    adult_categorical_features = [5, 6, 7, 8]
 
     adult_X.columns = adult_X.columns.str.replace("_", "-")
 
@@ -96,7 +97,7 @@ def process_adult_data():
             adult_X[col] = (adult_X[col] - adult_X[col].mean(axis=0)) / adult_X[col].std(axis=0)
 
 
-    adult_actionable_indices = [1, 2, 4]
+    adult_actionable_indices = [0, 1, 4]
     return adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names
 
 
