@@ -598,6 +598,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                     print("counterfactual: ", recourse.cf['X'][0])
                     print("counterfactual proba: ", recourse.cf['proba'])
                     print("normal proba: ", pred_function(model, sample))
+                assert(action > delta_max).all()
+
             else:
                 num_no_recourses += 1
                 num_none_returned += 1
@@ -789,7 +791,7 @@ def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.005, max_lam_steps = 10, thresholds_to_eval = None):
+def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
     
     lr = 0.002 # changed this for compas training
     fixed_precisions = [0.4, 0.5, 0.6, 0.7]
