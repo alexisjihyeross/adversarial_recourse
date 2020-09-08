@@ -598,7 +598,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                     print("counterfactual: ", recourse.cf['X'][0])
                     print("counterfactual proba: ", recourse.cf['proba'])
                     print("normal proba: ", pred_function(model, sample))
-                assert(action > delta_max).all()
+                assert(action <= delta_max).all()
 
             else:
                 num_no_recourses += 1
@@ -608,6 +608,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
             if do_print:
                 print(e)
                 print("no success")
+        except AssertionError as e:
+            print("assertion error")
         num_neg_instances += 1
         
     num_with_recourses = num_neg_instances - num_no_recourses
