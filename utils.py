@@ -191,7 +191,7 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
     recourse_fraction = round((num_pos_instances + flipped)/len(scores), 3)
     
-    assert((num_pos_instances + num_neg_instances) == len(scores))
+    assert (num_pos_instances + num_neg_instances) == len(scores), "scores don't add up"
     
     f = open(file_name, "a")
     print("num none returned (errors): {}/{}, {}".format(num_errors, num_neg_instances, none_returned_proportion), file=f)
@@ -201,28 +201,6 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
     f.close()
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
-
-def get_f1(model, X_test, y_test, data_indices, w, threshold, delta_max):
-
-    #TODO: this is hacky; but we only need this part for minority evaluate
-    if data_indices != None:
-        data = X_test.iloc[data_indices]    
-        labels = y_test.iloc[data_indices]
-
-    else:
-        data = X_test
-        labels = y_test
-
-    torch_data = torch.from_numpy(data.values).float()
-    torch_labels = torch.from_numpy(labels.values)
-    
-    y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
-    y_true = ((torch_labels).detach().numpy())
-    y_prob_pred = model(torch_data).detach().numpy()
-    
-    f1 = round(f1_score(y_true, y_pred), 3)
-
-    return f1
 
 def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data_indices, actionable_indices, epsilons, d, model_dir):
     """
@@ -405,10 +383,10 @@ def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, f1
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
 def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_features, \
-    experiment_dir, thresholds = None, lam_init = 0.005, max_lam_steps = 50, \
-    data_indices = range(0, 250), only_eval_at_max_f1 = False, lime_kw = 0.75):
+    experiment_dir, thresholds = None, lam_init = 0.001, max_lam_steps = 10, \
+    data_indices = range(0, 500), only_eval_at_max_f1 = False, lime_kw = 0.75):
     """
-    Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
+    Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function OR the threshold with max val f1 if only_eval_at_max_f1
 
     :param model: pytorch model to evaluate
     :param data: data directionary
@@ -439,6 +417,9 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_feat
     wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
     our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
 
+    # only_eval_at_max_f1 can only be true if we are evaluating at thresholds from validation evaluation
+    assert not (thresholds != None and only_eval_at_max_f1)
+
     # thresholds arg not supplied, read in thresholds from validation evaluation during training and use those
     if thresholds == None:
         threshold_df = get_threshold_info(model_dir, w)
@@ -446,10 +427,9 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_feat
 
     f1s = []
     if only_eval_at_max_f1:
-        for threshold in thresholds:
-            f1s.append(get_f1(model, data['X_test'], data['y_test'], data_indices, w, threshold, delta_max))
+        f1s = threshold_df['f1s'] 
 
-        # only evaluate at the threshold that maximizes f1 score
+        # only evaluate at the threshold that maximizes f1 score on val data
         eval_thresholds = [thresholds[np.argmax(f1s)]]
 
     else:
@@ -636,163 +616,6 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def tf_wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir):
-    """
-    calculate the optimal delta using linear program
-
-    :param model: pytorch model to evaluate
-    :param X_test: X test dataframe data (e.g. adult_data['X_test'])
-    :param y_test: y test dataframe data (e.g. adult_data['y_test'])
-    :param weight: weight being evaluated (used to name file)
-    :param threshold: threshold to use in evaluation
-    :param delta_max: parameter defining maximum change in individual feature value
-    :param lam_init: lam hyperparameter for wachter evaluation
-    :data_indices: subset of data to evaluate on (e.g. something like range(100, 300))
-    :actionable_indices: indices of actionable features
-    :model_dir: model (weight) specific directory within experiment directory
-
-    :returns: 
-    """
-
-    test_eval_dir = model_dir + "test_eval/"
-
-    if not os.path.exists(test_eval_dir):
-        os.makedirs(test_eval_dir)
-
-    file_name = test_eval_dir + str(weight) + '_wachter_' + str(threshold) + '_test.txt'
-
-    model.eval()
-    data = X_test.iloc[data_indices]    
-    labels = y_test.iloc[data_indices]
-
-    torch_data = torch.from_numpy(data.values).float()
-    torch_labels = torch.from_numpy(labels.values)
-
-    # this part is redundant with print_test_results
-    y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
-    y_true = ((torch_labels).detach().numpy())
-    y_prob_pred = model(torch_data).detach().numpy()
-    precision = round(precision_score(y_true, y_pred), 3)
-    pos_preds = np.sum(y_pred)
-    neg_preds = len(y_pred) - pos_preds
-
-    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
-
-    f = open(file_name, "a")
-    print("LAM INIT: {}".format(lam_init), file=f)
-    print("DELTA MAX: {}".format(delta_max), file=f)
-    print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
-    f.close()
-
-    # consider all lams from lam_init/10 to lam_init; 
-    #if cannot find any counterfactual instances using those values, i am assuming it is an unsolvable problem
-
-    do_print = True 
-
-    scores = (pred_function(model, data.values)[:, 0])
-
-    neg_test_preds = np.nonzero(np.array(scores) < threshold)[0]
-
-    num_no_recourses = 0
-    num_neg_instances = 0
-    num_none_returned = 0
-
-
-    weight_dir = model_dir
-
-    logger = logging.getLogger('alibi.explainers.counterfactual')
-    logging.basicConfig(level=logging.CRITICAL)
-
-    dummy_input = torch.from_numpy(data.values[0:2]).float()
-    onxx_model_name = save_model_as_onxx(model, dummy_input, weight_dir, weight)
-    onnx_model = onnx.load(onxx_model_name)
-
-    tf.compat.v1.disable_eager_execution()
-
-    k_model = onnx_to_keras(onnx_model, ['input.1'])
-
-    keras_model_name = weight_dir + str(weight) + '_best_model.h5'
-
-    k_model.save(keras_model_name)
-
-    tf.keras.backend.clear_session()    
-
-    new_k_model = keras.models.load_model(keras_model_name)
-
-    tf.compat.v1.disable_eager_execution()
-    new_k_model._make_predict_function()
-
-    global graph
-    graph = tf.compat.v1.get_default_graph()
-
-    for i in tqdm(neg_test_preds, total = len(neg_test_preds)):
-        tf.compat.v1.reset_default_graph()
-        with graph.as_default():
-
-            sample = data.iloc[i].values.reshape(1,-1)
-            mins = sample[0].copy()
-            maxs = sample[0].copy()
-            for ai in actionable_indices:
-                mins[ai] = mins[ai] - delta_max
-                maxs[ai] = maxs[ai] + delta_max
-            mins = mins.reshape(1,-1)
-            maxs = maxs.reshape(1,-1)
-
-
-            original_pred = new_k_model.predict(sample).item()
-            original_pred = 1 if original_pred > threshold else 0
-            target_pred = 1 if original_pred == 0 else 0
-            tol = (1 - threshold)
-
-            explainer = CounterFactual(new_k_model, \
-                                   shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
-                                   tol=tol, target_class='same', feature_range = (mins, maxs), \
-                                   lam_init = lam_init, max_lam_steps = max_lam_steps)
-            try:
-                recourse = explainer.explain(sample)
-                if recourse.cf != None:
-                    action = (recourse.cf['X'][0]) - sample
-                    if do_print:
-                        print("lambda: ", recourse.cf['lambda'])
-                        print('index: ', recourse.cf['index'])
-                        print("action: ", np.around(action, 2))
-                        print("sample: ", sample)
-                        print("counterfactual: ", recourse.cf['X'][0])
-                        print("counterfactual proba: ", recourse.cf['proba'])
-                        print("normal proba: ", new_k_model.predict(sample))
-                else:
-                    num_no_recourses += 1
-                    num_none_returned += 1
-            except UnboundLocalError as e:
-                num_no_recourses += 1
-                if do_print:
-                    print(e)
-                    print("no success")
-        num_neg_instances += 1
-        
-    num_with_recourses = num_neg_instances - num_no_recourses
-
-    if num_neg_instances != 0:
-        flipped_proportion = round((num_neg_instances-num_no_recourses)/num_neg_instances, 3)
-        none_returned_proportion = round(num_none_returned/num_neg_instances, 3)
-    else:
-        flipped_proportion = 0
-        none_returned_proportion = 0
-
-    recourse_fraction = round((pos_preds + num_with_recourses)/len(y_pred), 3)
-    
-    assert(num_neg_instances == neg_preds)
-    assert((pos_preds + num_neg_instances) == len(y_pred))
-    
-    f = open(file_name, "a")
-    print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
-    print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
-    print("proportion with recourse: {}".format(recourse_fraction), file=f)
-    print("--------\n\n", file=f) 
-    f.close()
-
-    return flipped_proportion, precision, recourse_fraction, f1, recall, acc
-
 def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
     
     lr = 0.002 # changed this for compas training
@@ -823,13 +646,13 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
 
         print("RUNNING EVALUTE")
         run_evaluate(model, data, w, delta_max, actionable_indices, categorical_features, experiment_dir, lam_init = lam_init, \
-            data_indices = range(0, 250), thresholds = thresholds_to_eval, max_lam_steps = max_lam_steps, \
+            data_indices = range(0, 500), thresholds = thresholds_to_eval, max_lam_steps = max_lam_steps, \
             only_eval_at_max_f1 = True)
 
         print("DONE EVALUATING FOR WEIGHT: ", w)
 
 def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
-    thresholds = None, only_eval_at_max_f1 = True, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 250), minority_indices = [], white_indices = []):
+    thresholds = None, only_eval_at_max_f1 = True, lam_init = 0.001, max_lam_steps = 10, data_indices = range(0, 500), minority_indices = [], white_indices = []):
 
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"
@@ -854,6 +677,9 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     white_labels = labels[labels.index.isin(white_data.index)]
     minority_labels = labels[labels.index.isin(minority_data.index)]
 
+    # only_eval_at_max_f1 can only be true if we are evaluating at thresholds from validation evaluation
+    assert not (thresholds != None and only_eval_at_max_f1)
+
     # thresholds arg not supplied, read in thresholds from validation evaluation during training and use those
     if thresholds == None:
         threshold_df = get_threshold_info(model_dir, w)
@@ -861,10 +687,9 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
 
     f1s = []
     if only_eval_at_max_f1:
-        for threshold in thresholds:
-            f1s.append(get_f1(model, dict_data['X_test'], dict_data['y_test'], data_indices, w, threshold, delta_max))
+        f1s = threshold_df['f1s'] 
 
-        # only evaluate at the threshold that maximizes f1 score
+        # only evaluate at the threshold that maximizes f1 score on val data
         eval_thresholds = [thresholds[np.argmax(f1s)]]
 
     else:
@@ -896,16 +721,16 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         our_recalls.append(our_recall)
         our_accs.append(our_acc)
 
-        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
-        # wachter_thresholds.append(threshold)
-        # wachter_precisions.append(wachter_precision)
-        # wachter_flipped_proportions.append(wachter_flipped_proportion)
-        # wachter_recourse_proportions.append(wachter_recourse_fraction)
-        # wachter_f1s.append(wachter_f1)
-        # wachter_recalls.append(wachter_recall)
-        # wachter_accs.append(wachter_acc)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
+        wachter_thresholds.append(threshold)
+        wachter_precisions.append(wachter_precision)
+        wachter_flipped_proportions.append(wachter_flipped_proportion)
+        wachter_recourse_proportions.append(wachter_recourse_fraction)
+        wachter_f1s.append(wachter_f1)
+        wachter_recalls.append(wachter_recall)
+        wachter_accs.append(wachter_acc)
 
-    # write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
+    write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
 
@@ -932,15 +757,15 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         our_recalls.append(our_recall)
         our_accs.append(our_acc)
 
-        # wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
-        # wachter_thresholds.append(threshold)
-        # wachter_precisions.append(wachter_precision)
-        # wachter_flipped_proportions.append(wachter_flipped_proportion)
-        # wachter_recourse_proportions.append(wachter_recourse_fraction)
-        # wachter_f1s.append(wachter_f1)
-        # wachter_recalls.append(wachter_recall)
-        # wachter_accs.append(wachter_acc)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
+        wachter_thresholds.append(threshold)
+        wachter_precisions.append(wachter_precision)
+        wachter_flipped_proportions.append(wachter_flipped_proportion)
+        wachter_recourse_proportions.append(wachter_recourse_fraction)
+        wachter_f1s.append(wachter_f1)
+        wachter_recalls.append(wachter_recall)
+        wachter_accs.append(wachter_acc)
 
-    # write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
+    write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
