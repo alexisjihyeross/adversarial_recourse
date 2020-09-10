@@ -158,7 +158,7 @@ def process_bail_data():
 
     return bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names
 
-def get_data(X, y, val_size = 0.1): 
+def get_data(X, y, val_size = 0.2): 
     """
     Splits processed data into train/val/test datasets
 
@@ -169,7 +169,7 @@ def get_data(X, y, val_size = 0.1):
     """
 
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_size)
-    X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.1)
+    X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=500)
     
     data = {
         'X_train': X_train,

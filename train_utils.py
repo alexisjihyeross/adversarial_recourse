@@ -141,7 +141,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     val_y_true = (y_val).detach().numpy()
 
     val_acc = np.sum(val_y_pred == val_y_true)/val_y_true.shape[0]
-    val_f1 = f1_score(y_val, val_y_pred)
+    val_f1 = round(f1_score(y_val, val_y_pred), 3)
     val_precision = precision_score(y_val, val_y_pred)
     val_recall = recall_score(y_val, val_y_pred)
         
@@ -181,7 +181,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
         text_file.write("-------------------\n\n")
         text_file.close()
 
-    return val_precision, val_recourse_proportion, val_proportion_flipped
+    return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1
 
 def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_dir, \
           num_epochs = 12, delta_max = 1.0, batch_size = 10, lr = 0.002, \
@@ -306,7 +306,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
 
         # add custom thresholds
-        prec_thresholds.extend([0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7])
+        prec_thresholds.extend([0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0])
 
         # FOR VAL
         flipped_epoch_by_threshold = [0 for a in prec_thresholds]
@@ -364,6 +364,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
         precision_by_threshold = []
         recourse_proportion_by_threshold = []
         flipped_proportion_by_threshold = []
+        f1_by_threshold = []
 
         # for each threshold, compute and record stats
         for t_idx, t in enumerate(best_thresholds):
@@ -371,22 +372,13 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             val_flipped = flipped_epoch_by_threshold[t_idx]
             num_negative = negative_epoch_by_threshold[t_idx]
             num_positive = len(y_true) - num_negative
-            val_precision, val_recourse_proportion, val_flipped_proportion = write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
+            val_precision, val_recourse_proportion, val_flipped_proportion, val_f1 = write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
                 t, val_flipped, best_epoch, num_negative, num_positive)
 
             precision_by_threshold.append(round(val_precision, 3))
             recourse_proportion_by_threshold.append(val_recourse_proportion)
             flipped_proportion_by_threshold.append(val_flipped_proportion)
-
-
-        # below are to write stats for custom thresholds
-        # test_threshold_file = weight_dir + str(recourse_loss_weight) + "_0.5_threshold_stats.txt"
-
-        # _, _, _ = write_stats_at_threshold(test_threshold_file, test_threshold_file, model, X_train, X_val, y_train, y_val, \
-        #         0.3, -1, False, num_negative, num_positive)
-
-        # _, _, _ = write_stats_at_threshold(test_threshold_file, test_threshold_file, model, X_train, X_val, y_train, y_val, \
-        #         0.4, -1, False, num_negative, num_positive)
+            f1_by_threshold.append(val_f1)
 
         # if the best epoch, write information about thresholds and various metrics
         if best_epoch:
@@ -398,6 +390,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             thresholds_data['precisions'] = precision_by_threshold
             thresholds_data['flipped_proportion'] = flipped_proportion_by_threshold
             thresholds_data['recourse_proportion'] = recourse_proportion_by_threshold
+            threshold_data['f1s'] = f1_by_threshold
 
             thresholds_df = pd.DataFrame(data=thresholds_data)
             thresholds_df['thresholds'] = thresholds_df['thresholds'].round(3)
