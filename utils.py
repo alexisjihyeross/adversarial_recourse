@@ -862,7 +862,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     f1s = []
     if only_eval_at_max_f1:
         for threshold in thresholds:
-            f1s.append(get_f1(model, data['X_test'], data['y_test'], data_indices, w, threshold, delta_max))
+            f1s.append(get_f1(model, dict_data['X_test'], dict_data['y_test'], data_indices, w, threshold, delta_max))
 
         # only evaluate at the threshold that maximizes f1 score
         eval_thresholds = [thresholds[np.argmax(f1s)]]
