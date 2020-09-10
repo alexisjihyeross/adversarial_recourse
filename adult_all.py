@@ -7,7 +7,7 @@ from utils import *
 delta_max = 0.75
 
 adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names = process_adult_data()
-adult_experiment_dir = 'new_results/0907_adult_' + str(delta_max) + '/'
+adult_experiment_dir = 'new_results/0910_experiments/0910_adult_' + str(delta_max) + '/'
 
 adult_data = get_data(adult_X, adult_y)
 write_data(adult_data, adult_experiment_dir)

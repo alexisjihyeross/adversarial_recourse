@@ -7,7 +7,7 @@ from utils import *
 delta_max = 0.75
 
 bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names = process_bail_data()
-bail_experiment_dir = 'new_results/0907_bail_' + str(delta_max) + '/'
+bail_experiment_dir = 'new_results/0910_experiments/0910_bail_' + str(delta_max) + '/'
 
 bail_data = get_data(bail_X, bail_y)
 write_data(bail_data, bail_experiment_dir)

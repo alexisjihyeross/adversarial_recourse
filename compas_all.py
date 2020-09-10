@@ -6,7 +6,7 @@ from utils import *
 
 delta_max = 0.75
 
-compas_experiment_dir = 'new_results/0907_compas_' + str(delta_max) + '/'
+compas_experiment_dir = 'new_results/0910_experiments/0910_compas_' + str(delta_max) + '/'
 compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names = process_compas_data()
 
 compas_data = get_data(compas_X, compas_y)
