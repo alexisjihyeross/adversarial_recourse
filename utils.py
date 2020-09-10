@@ -829,7 +829,7 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
         print("DONE EVALUATING FOR WEIGHT: ", w)
 
 def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
-    thresholds = None, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 250), minority_indices = [], white_indices = []):
+    thresholds = None, only_eval_at_max_f1 = True, lam_init = 0.005, max_lam_steps = 50, data_indices = range(0, 250), minority_indices = [], white_indices = []):
 
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"
@@ -853,6 +853,22 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
 
     white_labels = labels[labels.index.isin(white_data.index)]
     minority_labels = labels[labels.index.isin(minority_data.index)]
+
+    # thresholds arg not supplied, read in thresholds from validation evaluation during training and use those
+    if thresholds == None:
+        threshold_df = get_threshold_info(model_dir, w)
+        thresholds = list(threshold_df['thresholds'])
+
+    f1s = []
+    if only_eval_at_max_f1:
+        for threshold in thresholds:
+            f1s.append(get_f1(model, data['X_test'], data['y_test'], data_indices, w, threshold, delta_max))
+
+        # only evaluate at the threshold that maximizes f1 score
+        eval_thresholds = [thresholds[np.argmax(f1s)]]
+
+    else:
+        eval_thresholds = thresholds
 
     # lists in which to store results for diff thresholds
     wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
