@@ -9,11 +9,12 @@ delta_max = 0.75
 bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names = process_bail_data()
 bail_experiment_dir = 'new_results/0910_experiments/0910_bail_' + str(delta_max) + '/'
 
-bail_data = get_data(bail_X, bail_y)
-write_data(bail_data, bail_experiment_dir)
+#bail_data = get_data(bail_X, bail_y)
+#write_data(bail_data, bail_experiment_dir)
+bail_data = read_data(bail_experiment_dir)
 
 weights = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-run(bail_data, bail_actionable_indices, bail_categorical_features, bail_experiment_dir, weights, delta_max, do_train = True)
+#run(bail_data, bail_actionable_indices, bail_categorical_features, bail_experiment_dir, weights, delta_max, do_train = True)
 
 data = bail_data
 experiment_dir = bail_experiment_dir

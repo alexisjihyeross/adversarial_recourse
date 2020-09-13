@@ -4,7 +4,7 @@ from small_model import *
 from big_model import *
 from utils import *
 
-compas_experiment_dir = 'new_results/0907_compas_0.5/'
+compas_experiment_dir = 'new_results/0907_compas_0.75/'
 compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names = process_compas_data()
 compas_data = read_data(compas_experiment_dir)
 

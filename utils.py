@@ -699,7 +699,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
     our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
 
-    print("THRESHOLDS: ", thresholds)
+    print("THRESHOLDS: ", eval_thresholds)
     # WHITE DATA:
 
     # name of file where to output all results for different thresholds
@@ -708,7 +708,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     # name of file where to output all results for different thresholds
     our_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "WHITE_our_thresholds_test_results.csv"
 
-    for threshold in thresholds:
+    for threshold in eval_thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
 
@@ -744,7 +744,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     # name of file where to output all results for different thresholds
     our_thresholds_file_name = out_dir + "MINORITY_our_thresholds_test_results.csv"
 
-    for threshold in thresholds:
+    for threshold in eval_thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
 
