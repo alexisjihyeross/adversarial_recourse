@@ -390,7 +390,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             thresholds_data['precisions'] = precision_by_threshold
             thresholds_data['flipped_proportion'] = flipped_proportion_by_threshold
             thresholds_data['recourse_proportion'] = recourse_proportion_by_threshold
-            threshold_data['f1s'] = f1_by_threshold
+            thresholds_data['f1s'] = f1_by_threshold
 
             thresholds_df = pd.DataFrame(data=thresholds_data)
             thresholds_df['thresholds'] = thresholds_df['thresholds'].round(3)
