@@ -18,6 +18,8 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
 from sklearn.metrics import f1_score, precision_score, recall_score
 
+import pandas as pd
+
 
 def load_model(device, model_name = 'bert-base-uncased'):
     print("loading model...")
@@ -58,7 +60,7 @@ def antonyms(term):
     return [span.text for span in soup.findAll('a', {'class': 'css-4elvh4'})] # class = .css-7854fb for less relevant
 
 
-def get_candidates(model, text, max_candidates = 20):
+def get_candidates(model, text, max_candidates = 10):
     words = word_tokenize(text)
     candidates = [None] * max_candidates
     counter = 0
@@ -73,49 +75,65 @@ def get_candidates(model, text, max_candidates = 20):
             candidates[counter] = (TreebankWordDetokenizer().detokenize([a if x == word else x for x in words]))
             counter += 1
             if counter >= max_candidates:
-                return candidates
-    return candidates
+                return list(filter(None.__ne__, candidates))
+    return list(filter(None.__ne__, candidates))
 
 def get_delta_opt(model, tokenizer, device, text):
     cands = get_candidates(model, text)
     max_prob = 0
+    found_cand = False
     for c in cands:
-        cand_logits, cand_labels, cand_prob = get_pred(model, tokenizer, device, c, 1.0)
+        input_ids, labels = get_tensors(device, c, 1.0)
+        cand_logits, cand_labels, cand_prob = get_pred(model, tokenizer, device, input_ids, labels)
         if cand_prob > max_prob:
             max_cand = c
             max_prob = cand_prob
             max_logits = cand_logits
             max_prob = cand_prob
+            found_cand = True
+            del input_ids
+            del labels
         else:
             del cand_logits
             del cand_labels
             del cand_prob
             torch.cuda.empty_cache()
+    if not found_cand:
+        input_ids, labels = get_tensors(device, text, 1.0)
+        max_logits, max_labels, max_prob = get_pred(model, tokenizer, device, input_ids, labels)
+        max_cand = text
+        del input_ids
+        del labels
     return max_cand, max_logits, max_prob
 
-def get_pred(model, tokenizer, device, text, label):
-    encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
-    input_ids = encoding.to(device)
-    labels = torch.LongTensor([label]).to(device)
+def get_pred(model, tokenizer, device, input_ids, labels):
     outputs = model(input_ids)
     logits = outputs[0]
     pos_prob = torch.nn.Softmax(dim=-1)(logits)[:, -1]
     return logits, labels, pos_prob
 
+def get_tensors(device, text, label):
+    encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
+    input_ids = encoding.to(device)
+    labels = torch.LongTensor([label]).to(device)
+    return input_ids, labels
 
-def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
+def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_weight):
 
     # get data
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
 
-    # load model and tokenizer
-    model, tokenizer = load_model(device, model_name = 'bert-base-uncased')
-    
+    # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
+#     train_texts = train_texts[0:300]
+#     train_labels = train_labels[0:300]
+    
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
 
-    batch_size = 32
-    threshold = 0.5
+#     dev_texts = dev_texts[0:300]
+#     dev_labels = dev_labels[0:300]
+    
+    batch_size = 8
 
     lr = 2e-5
     num_warmup_steps = 0
@@ -133,17 +151,24 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
 
     best_val_loss = 100000000
 
+    flipped_by_thresh = {thresh: 0 for thresh in thresholds_to_eval}
+    negative_by_thresh = {thresh: 0 for thresh in thresholds_to_eval}
+
     for epoch in range(num_epochs):
         batch_loss, train_epoch_loss, train_correct = 0, 0, 0
         
         print("EPOCH: ", epoch)
         model.train()
+        
+        pos_probs = []
 
         for i, (text, label) in tqdm(enumerate(zip(train_texts, train_labels)), total = len(train_texts)):
-            logits, labels, pos_prob = get_pred(model, tokenizer, device, text, label)
-            _, delta_logits, _ = get_delta_opt(model, tokenizer, device, text)
+            input_ids, labels = get_tensors(device, text, label)
+            logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)
+            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
             batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
-                        
+                
+                
             if i % 1000 == 0:
                 print(i, " out of ", len(train_texts))
             
@@ -156,9 +181,50 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
                 del batch_loss
                 torch.cuda.empty_cache()
                 batch_loss = 0
-                
-        print("Train acc: ", train_correct/len(train_texts))
-        print("Train epoch loss: ", train_epoch_loss/len(train_texts))
+            
+            pos_probs.append(pos_prob.item())
+
+            for t in thresholds_to_eval:
+                if pos_prob.item() < t:
+                    negative_by_thresh[t] += 1
+                    if delta_prob.item() >= t:
+                        flipped_by_thresh[t] += 1
+            
+        np_probs = np.array(pos_probs)
+        np_labels = np.array(train_labels)
+
+        for t_idx, t in enumerate(thresholds_to_eval):
+            label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
+
+            f1 = round(f1_score(label_preds, np_labels), 3)
+
+            recall = round(recall_score(label_preds, np_labels), 3)
+
+            prec = round(precision_score(label_preds, np_labels), 3)
+
+            acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
+
+            num_neg = negative_by_thresh[t]
+            num_pos = len(dev_labels) - num_neg
+            assert (num_neg + num_pos) == len(dev_labels)
+            flipped = flipped_by_thresh[t]
+
+            if num_neg != 0:
+                flipped_proportion = round(flipped/num_neg, 3)
+            else:
+                flipped_proportion = 0
+
+            recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
+            
+            print("THRESHOLD: ", t)
+            print("Train acc: ", acc)
+            print("Train f1: ", f1)
+            print("Train flipped: ", flipped_proportion)
+            print("Train recourse: ", recourse_proportion)
+            print("-------\n")
+
+        print("Train (avg) epoch loss: ", train_epoch_loss/len(train_texts))
+            
         
         model.eval()
             
@@ -170,23 +236,26 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
         negative_by_thresh = {thresh :0 for thresh in thresholds_to_eval}
 
         for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
-            logits, labels, pos_prob = get_pred(model, tokenizer, device, text, label)
+            input_ids, labels = get_tensors(device, text, label)
+            logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
             _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
-            epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
-
-
+            epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight).item()
+            
             del input_ids
+            del labels
+            del logits
+            torch.cuda.empty_cache()
             
             pos_probs.append(pos_prob.item())
 
             for t in thresholds_to_eval:
                 if pos_prob.item() < t:
                     negative_by_thresh[t] += 1
-                    if delta_prob >= t:
+                    if delta_prob.item() >= t:
                         flipped_by_thresh[t] += 1
-            
-        if epoch_val_los < best_val_loss:
-            best_model_name = weight_dir + str(recourse_loss_weight) + 'best_model.pt'
+                        
+        if epoch_val_loss < best_val_loss:
+            best_model_name = weight_dir + str(recourse_loss_weight) + '_best_model.pt'
             torch.save(model, best_model_name)
             best_epoch = True
 
@@ -247,7 +316,5 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
             thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
             
         print("VAL ACC: ", val_correct/len(dev_texts))
-        print("+ ", val_preds.count(1.0))
-        print("-", val_preds.count(0.0))
 
 
