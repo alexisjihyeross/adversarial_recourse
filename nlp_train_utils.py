@@ -76,11 +76,11 @@ def get_candidates(model, text, max_candidates = 20):
                 return candidates
     return candidates
 
-def get_delta_opt(model, text):
+def get_delta_opt(model, tokenizer, device, text):
     cands = get_candidates(model, text)
     max_prob = 0
     for c in cands:
-        cand_logits, _, cand_prob = get_pred(model, cand, 1.0)
+        cand_logits, _, cand_prob = get_pred(model, tokenizer, device, cand, 1.0)
         if cand_prob > max_prob:
             max_cand = c
             max_prob = cand_prob
@@ -88,6 +88,14 @@ def get_delta_opt(model, text):
             max_prob = cand_prob
     return max_cand, max_logits, max_prob
 
+def get_pred(model, tokenizer, device, text, label):
+    encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
+    input_ids = encoding.to(device)
+    labels = torch.LongTensor([label]).to(device)
+    outputs = model(input_ids)
+    logits = outputs[0]
+    pos_prob = torch.nn.Softmax(dim=-1)(logits)[:, -1]
+    return logits, labels, pos_prob
 
 
 def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
@@ -113,15 +121,6 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
     scheduler = get_linear_schedule_with_warmup(optim, num_warmup_steps, num_train_steps)
     loss_fn = torch.nn.CrossEntropyLoss()
 
-    def get_pred(model, text, label):
-        encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
-        input_ids = encoding.to(device)
-        labels = torch.LongTensor([label]).to(device)
-        outputs = model(input_ids)
-        logits = outputs[0]
-        pos_prob = torch.nn.Softmax(dim=-1)(logits)[:, -1]
-        return logits, labels, pos_prob
-
     def combined_loss(model, logits, labels, delta_logits, loss_fn, recourse_loss_weight):
         normal_loss = loss_fn(logits, labels)
         recourse_loss = loss_fn(delta_logits, torch.LongTensor([1.0]))
@@ -136,8 +135,8 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
         model.train()
 
         for i, (text, label) in tqdm(enumerate(zip(train_texts, train_labels)), total = len(train_texts)):
-            logits, labels, pos_prob = get_pred(model, text, label)
-            _, delta_logits, _ = get_delta_opt(model, text)
+            logits, labels, pos_prob = get_pred(model, tokenizer, device, text, label)
+            _, delta_logits, _ = get_delta_opt(model, tokenizer, device, text)
             batch_loss += combined_loss(model, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
                         
             if i % 1000 == 0:
@@ -166,8 +165,8 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
         negative_by_thresh = {thresh :0 for thresh in thresholds_to_eval}
 
         for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
-            logits, labels, pos_prob = get_pred(model, text, label)
-            _, delta_logits, delta_prob = get_delta_opt(model, text)
+            logits, labels, pos_prob = get_pred(model, tokenizer, device, text, label)
+            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
             epoch_val_loss += combined_loss(model, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
 
 
