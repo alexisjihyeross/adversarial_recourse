@@ -20,12 +20,14 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 
 
 def load_model(device, model_name = 'bert-base-uncased'):
+    print("loading model...")
     model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
     model.to(device)
     model.train()
 
     tokenizer = BertTokenizer.from_pretrained(model_name)
 
+    print("done.")
     return model, tokenizer
 
 def get_sst_data(file_path):
@@ -116,7 +118,7 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
         input_ids = encoding.to(device)
         labels = torch.LongTensor([label]).to(device)
         outputs = model(input_ids)
-        logits = outputs.logits
+        logits = outputs[0]
         pos_prob = torch.nn.Softmax(dim=-1)(logits)[:, -1]
         return logits, labels, pos_prob
 
