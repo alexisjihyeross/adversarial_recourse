@@ -137,7 +137,7 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
         for i, (text, label) in tqdm(enumerate(zip(train_texts, train_labels)), total = len(train_texts)):
             logits, labels, pos_prob = get_pred(model, tokenizer, device, text, label)
             _, delta_logits, _ = get_delta_opt(model, tokenizer, device, text)
-            batch_loss += combined_loss(model, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
+            batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
                         
             if i % 1000 == 0:
                 print(i, " out of ", len(train_texts))
@@ -167,7 +167,7 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
         for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
             logits, labels, pos_prob = get_pred(model, tokenizer, device, text, label)
             _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
-            epoch_val_loss += combined_loss(model, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
+            epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
 
 
             del input_ids
