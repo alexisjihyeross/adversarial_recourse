@@ -30,6 +30,7 @@ for w in weights:
     # Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
     run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
 
+"""
 for w in weights:
     print("lime WEIGHT: ", w)    
     weight_dir = experiment_dir + str(w) + "/"
@@ -48,3 +49,4 @@ for w in weights:
 
     for kernel_width in [0.5, 1, 1.5, 2.0]:
         lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
+"""

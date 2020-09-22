@@ -88,9 +88,14 @@ def get_delta_opt(model, text):
 
 
 
-def train_nlp(weight_dir, model, thresholds_to_eval, recourse_loss_weight):
+def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
 
     # get data
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    # load model and tokenizer
+    model, tokenizer = load_model(device, model_name = 'bert-base-uncased')
+    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
 
@@ -105,10 +110,6 @@ def train_nlp(weight_dir, model, thresholds_to_eval, recourse_loss_weight):
     optim = AdamW(model.parameters(), lr=lr)
     scheduler = get_linear_schedule_with_warmup(optim, num_warmup_steps, num_train_steps)
     loss_fn = torch.nn.CrossEntropyLoss()
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-    # load model and tokenizer
-    model, tokenizer = load_model(device, model_name = 'bert-base-uncased')
 
     def get_pred(model, text, label):
         encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
