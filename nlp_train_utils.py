@@ -80,12 +80,17 @@ def get_delta_opt(model, tokenizer, device, text):
     cands = get_candidates(model, text)
     max_prob = 0
     for c in cands:
-        cand_logits, _, cand_prob = get_pred(model, tokenizer, device, c, 1.0)
+        cand_logits, cand_labels, cand_prob = get_pred(model, tokenizer, device, c, 1.0)
         if cand_prob > max_prob:
             max_cand = c
             max_prob = cand_prob
             max_logits = cand_logits
             max_prob = cand_prob
+        else:
+            del cand_logits
+            del cand_labels
+            del cand_prob
+            torch.cuda.empty_cache()
     return max_cand, max_logits, max_prob
 
 def get_pred(model, tokenizer, device, text, label):
