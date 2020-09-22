@@ -70,7 +70,7 @@ def get_candidates(model, text, max_candidates = 20):
         if tmp != "a" and tmp != "n":
             continue
         for a in antonyms(word):
-            candidates.append(TreebankWordDetokenizer().detokenize([a if x == word else x for x in words]))
+            candidates[counter] = (TreebankWordDetokenizer().detokenize([a if x == word else x for x in words]))
             counter += 1
             if counter >= max_candidates:
                 return candidates
@@ -80,7 +80,7 @@ def get_delta_opt(model, tokenizer, device, text):
     cands = get_candidates(model, text)
     max_prob = 0
     for c in cands:
-        cand_logits, _, cand_prob = get_pred(model, tokenizer, device, cand, 1.0)
+        cand_logits, _, cand_prob = get_pred(model, tokenizer, device, c, 1.0)
         if cand_prob > max_prob:
             max_cand = c
             max_prob = cand_prob
@@ -121,9 +121,9 @@ def train_nlp(weight_dir, thresholds_to_eval, recourse_loss_weight):
     scheduler = get_linear_schedule_with_warmup(optim, num_warmup_steps, num_train_steps)
     loss_fn = torch.nn.CrossEntropyLoss()
 
-    def combined_loss(model, logits, labels, delta_logits, loss_fn, recourse_loss_weight):
+    def combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight):
         normal_loss = loss_fn(logits, labels)
-        recourse_loss = loss_fn(delta_logits, torch.LongTensor([1.0]))
+        recourse_loss = loss_fn(delta_logits, torch.LongTensor([1.0]).to(device))
         return recourse_loss * recourse_loss_weight + normal_loss
 
     best_val_loss = 100000000
