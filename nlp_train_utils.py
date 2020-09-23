@@ -130,9 +130,14 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
     # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
-    
+    train_texts = train_texts[0:50]
+    train_labels = train_labels[0:50]
+
+
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
-    
+    dev_texts = dev_texts[0:50]
+    dev_labels = dev_labels[0:50]
+
     batch_size = 8
 
     lr = 2e-5
@@ -182,9 +187,6 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
                 
                 
-            if i % 1000 == 0:
-                print(i, " out of ", len(train_texts))
-            
             if i % batch_size == 0:    
                 model.zero_grad() 
                 batch_loss.backward()
@@ -337,15 +339,14 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             thresholds_data = {}
 
             thresholds_data['thresholds'] = thresholds_to_eval
-            thresholds_data['precisions'] = precision_by_thresh
-            thresholds_data['flipped_proportion'] = flipped_proportion_by_thresh
-            thresholds_data['recourse_proportion'] = recourse_proportion_by_thresh
             thresholds_data['f1s'] = f1_by_thresh
             thresholds_data['accs'] = acc_by_thresh
             thresholds_data['recalls'] = recall_by_thresh
             thresholds_data['precisions'] = precision_by_thresh
-
+            thresholds_data['flipped_proportion'] = flipped_proportion_by_thresh
+            thresholds_data['recourse_proportion'] = recourse_proportion_by_thresh
             thresholds_df = pd.DataFrame(data=thresholds_data)
+            
             best_model_thresholds_file_name = weight_dir + str(recourse_loss_weight) + '_val_thresholds_info.csv'
             thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
 
