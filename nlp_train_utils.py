@@ -7,7 +7,7 @@ from nltk.tree import Tree
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 from transformers import get_linear_schedule_with_warmup
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import numpy as np
 
 import requests
@@ -83,7 +83,7 @@ def get_delta_opt(model, tokenizer, device, text):
     max_prob = 0
     found_cand = False
     for c in cands:
-        input_ids, labels = get_tensors(device, c, 1.0)
+        input_ids, labels = get_tensors(device, tokenizer, c, 1.0)
         cand_logits, cand_labels, cand_prob = get_pred(model, tokenizer, device, input_ids, labels)
         if cand_prob > max_prob:
             max_cand = c
@@ -99,7 +99,7 @@ def get_delta_opt(model, tokenizer, device, text):
             del cand_prob
             torch.cuda.empty_cache()
     if not found_cand:
-        input_ids, labels = get_tensors(device, text, 1.0)
+        input_ids, labels = get_tensors(device, tokenizer, text, 1.0)
         max_logits, max_labels, max_prob = get_pred(model, tokenizer, device, input_ids, labels)
         max_cand = text
         del input_ids
@@ -112,7 +112,7 @@ def get_pred(model, tokenizer, device, input_ids, labels):
     pos_prob = torch.nn.Softmax(dim=-1)(logits)[:, -1]
     return logits, labels, pos_prob
 
-def get_tensors(device, text, label):
+def get_tensors(device, tokenizer, text, label):
     encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
     input_ids = encoding.to(device)
     labels = torch.LongTensor([label]).to(device)
@@ -163,7 +163,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         pos_probs = []
 
         for i, (text, label) in tqdm(enumerate(zip(train_texts, train_labels)), total = len(train_texts)):
-            input_ids, labels = get_tensors(device, text, label)
+            input_ids, labels = get_tensors(device, tokenizer, text, label)
             logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)
             _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
             batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
@@ -205,7 +205,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
 
             num_neg = negative_by_thresh[t]
-            num_pos = len(dev_labels) - num_neg
+            num_pos = len(train_labels) - num_neg
             assert (num_neg + num_pos) == len(dev_labels)
             flipped = flipped_by_thresh[t]
 
@@ -214,7 +214,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             else:
                 flipped_proportion = 0
 
-            recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
+            recourse_proportion = round((flipped + num_pos)/len(train_labels), 3)
             
             print("THRESHOLD: ", t)
             print("Train acc: ", acc)
@@ -236,7 +236,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         negative_by_thresh = {thresh :0 for thresh in thresholds_to_eval}
 
         for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
-            input_ids, labels = get_tensors(device, text, label)
+            input_ids, labels = get_tensors(device, tokenizer, text, label)
             logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
             _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
             epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight).item()
