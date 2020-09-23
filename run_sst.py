@@ -4,7 +4,7 @@ import torch
 from nlp_train_utils import *
 
 recourse_loss_weight = 0.0
-weight_dir = 'test_nlp/' + str(recourse_loss_weight) + "/"
+weight_dir = 'test_nlp/0923_combined_2/' + str(recourse_loss_weight) + "/"
 if not os.path.exists(weight_dir):
     os.makedirs(weight_dir)
     

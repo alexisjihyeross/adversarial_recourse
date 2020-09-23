@@ -130,17 +130,17 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
     # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
-    train_texts = train_texts[0:50]
-    train_labels = train_labels[0:50]
+    #train_texts = train_texts[0:50]
+    #train_labels = train_labels[0:50]
 
 
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
-    dev_texts = dev_texts[0:50]
-    dev_labels = dev_labels[0:50]
+    #dev_texts = dev_texts[0:50]
+    #dev_labels = dev_labels[0:50]
 
     batch_size = 8
 
-    lr = 2e-5
+    lr = 5e-5
     num_warmup_steps = 0
     num_epochs = 3
     num_train_steps = len(train_texts)/batch_size * num_epochs
@@ -213,7 +213,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         print("----------", file = training_file)
         print("", file = training_file)
         print("EPOCH: ", epoch, file = training_file)
-        print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes")
+        print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes", file = training_file)
         print("", file = training_file)
 
         for t_idx, t in enumerate(thresholds_to_eval):
@@ -239,7 +239,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
             recourse_proportion = round((flipped + num_pos)/len(train_labels), 3)
             
-            print("TRAIN STATS FOR THRESHOLD = ", t, ": ", file = training_file)
+            print("TRAIN STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
             print("train acc: ", acc, file = training_file)
             print("train f1: ", f1, file = training_file)
             print("train flipped: ", flipped_proportion, file = training_file)
@@ -289,54 +289,56 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             best_epoch = False
 
         # if best epoch, eval
-        if best_epoch:
-            np_probs = np.array(pos_probs)
-            np_labels = np.array(dev_labels)
+        np_probs = np.array(pos_probs)
+        np_labels = np.array(dev_labels)
 
+        if best_epoch:
             best_model_info_file_name = weight_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
             best_model_info_file = open(best_model_info_file_name, "w")
             print("epoch: ", epoch, file = best_model_info_file)
             best_model_info_file.close()
 
-            f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
+        f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
 
-            for t_idx, t in enumerate(thresholds_to_eval):
-                label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
+        for t_idx, t in enumerate(thresholds_to_eval):
+            label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
 
-                f1 = round(f1_score(label_preds, np_labels), 3)
-                f1_by_thresh.append(f1) 
+            f1 = round(f1_score(label_preds, np_labels), 3)
+            f1_by_thresh.append(f1) 
 
-                recall = round(recall_score(label_preds, np_labels), 3)
-                recall_by_thresh.append(recall)
+            recall = round(recall_score(label_preds, np_labels), 3)
+            recall_by_thresh.append(recall)
 
-                prec = round(precision_score(label_preds, np_labels), 3)
-                precision_by_thresh.append(prec)
+            prec = round(precision_score(label_preds, np_labels), 3)
+            precision_by_thresh.append(prec)
 
-                acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
-                acc_by_thresh.append(acc) 
+            acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
+            acc_by_thresh.append(acc) 
 
-                num_neg = negative_by_thresh[t]
-                num_pos = len(dev_labels) - num_neg
-                assert (num_neg + num_pos) == len(dev_labels)
-                flipped = flipped_by_thresh[t]
+            num_neg = negative_by_thresh[t]
+            num_pos = len(dev_labels) - num_neg
+            assert (num_neg + num_pos) == len(dev_labels)
+            flipped = flipped_by_thresh[t]
 
-                if num_neg != 0:
-                    flipped_proportion = round(flipped/num_neg, 3)
-                else:
-                    flipped_proportion = 0
+            if num_neg != 0:
+                flipped_proportion = round(flipped/num_neg, 3)
+            else:
+                flipped_proportion = 0
 
-                recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
+            recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
 
-                flipped_proportion_by_thresh.append(flipped_proportion)
-                recourse_proportion_by_thresh.append(recourse_proportion)
+            flipped_proportion_by_thresh.append(flipped_proportion)
+            recourse_proportion_by_thresh.append(recourse_proportion)
 
-                print("VAL STATS FOR THRESHOLD = ", t, ": ", file = training_file)
-                print("val acc: ", acc, file = training_file)
-                print("val f1: ", f1, file = training_file)
-                print("val flipped: ", flipped_proportion, file = training_file)
-                print("val recourse: ", recourse_proportion, file = training_file)
-                print("\n")
-                
+            print("VAL STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
+            print("val acc: ", acc, file = training_file)
+            print("val f1: ", f1, file = training_file)
+            print("val flipped: ", flipped_proportion, file = training_file)
+            print("val recourse: ", recourse_proportion, file = training_file)
+            print("\n")
+        
+        if best_epoch:
+
             thresholds_data = {}
 
             thresholds_data['thresholds'] = thresholds_to_eval
