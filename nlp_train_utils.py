@@ -19,6 +19,7 @@ from nltk.corpus import wordnet as wn
 from sklearn.metrics import f1_score, precision_score, recall_score
 
 import pandas as pd
+import time
 
 
 def load_model(device, model_name = 'bert-base-uncased'):
@@ -120,18 +121,17 @@ def get_tensors(device, tokenizer, text, label):
 
 def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_weight):
 
+    training_file_name = weight_dir + str(recourse_loss_weight) + "_model_training_info.txt"
+
+    training_file = open(training_file_name, "w")
+
     # get data
     device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
 
     # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
-#     train_texts = train_texts[0:300]
-#     train_labels = train_labels[0:300]
     
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
-
-#     dev_texts = dev_texts[0:300]
-#     dev_labels = dev_labels[0:300]
     
     batch_size = 8
 
@@ -139,6 +139,18 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     num_warmup_steps = 0
     num_epochs = 3
     num_train_steps = len(train_texts)/batch_size * num_epochs
+
+
+    print("len(train): ", len(train_texts), file = training_file)
+    print("train # pos: ", np.sum(np.array(train_labels)), file = training_file)
+    print("train # neg: ", len(train_texts) - np.sum(np.array(train_labels)), file = training_file)
+    print("len(val): ", len(dev_texts), file = training_file)
+
+    print("", file = training_file)
+
+    print("lr: ", lr, file = training_file)
+    print("num warmup steps: ", num_warmup_steps, file = training_file)
+    print("num epochs: ", num_epochs, file = training_file)
 
     optim = AdamW(model.parameters(), lr=lr)
     scheduler = get_linear_schedule_with_warmup(optim, num_warmup_steps, num_train_steps)
@@ -158,6 +170,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         batch_loss, train_epoch_loss, train_correct = 0, 0, 0
         
         print("EPOCH: ", epoch)
+        epoch_start = time.time()
         model.train()
         
         pos_probs = []
@@ -193,6 +206,13 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         np_probs = np.array(pos_probs)
         np_labels = np.array(train_labels)
 
+        # write train info
+        print("----------", file = training_file)
+        print("", file = training_file)
+        print("EPOCH: ", epoch, file = training_file)
+        print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes")
+        print("", file = training_file)
+
         for t_idx, t in enumerate(thresholds_to_eval):
             label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
 
@@ -206,7 +226,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
             num_neg = negative_by_thresh[t]
             num_pos = len(train_labels) - num_neg
-            assert (num_neg + num_pos) == len(dev_labels)
+            assert (num_neg + num_pos) == len(train_labels)
             flipped = flipped_by_thresh[t]
 
             if num_neg != 0:
@@ -216,16 +236,19 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
             recourse_proportion = round((flipped + num_pos)/len(train_labels), 3)
             
-            print("THRESHOLD: ", t)
-            print("Train acc: ", acc)
-            print("Train f1: ", f1)
-            print("Train flipped: ", flipped_proportion)
-            print("Train recourse: ", recourse_proportion)
-            print("-------\n")
+            print("TRAIN STATS FOR THRESHOLD = ", t, ": ", file = training_file)
+            print("train acc: ", acc, file = training_file)
+            print("train f1: ", f1, file = training_file)
+            print("train flipped: ", flipped_proportion, file = training_file)
+            print("train recourse: ", recourse_proportion, file = training_file)
+            print("\n")
 
         print("Train (avg) epoch loss: ", train_epoch_loss/len(train_texts))
-            
         
+
+        training_file.flush()
+
+
         model.eval()
             
         val_correct = 0
@@ -267,6 +290,11 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             np_probs = np.array(pos_probs)
             np_labels = np.array(dev_labels)
 
+            best_model_info_file_name = weight_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
+            best_model_info_file = open(best_model_info_file_name, "w")
+            print("epoch: ", epoch, file = best_model_info_file)
+            best_model_info_file.close()
+
             f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
 
             for t_idx, t in enumerate(thresholds_to_eval):
@@ -299,7 +327,13 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
                 flipped_proportion_by_thresh.append(flipped_proportion)
                 recourse_proportion_by_thresh.append(recourse_proportion)
 
-            
+                print("VAL STATS FOR THRESHOLD = ", t, ": ", file = training_file)
+                print("val acc: ", acc, file = training_file)
+                print("val f1: ", f1, file = training_file)
+                print("val flipped: ", flipped_proportion, file = training_file)
+                print("val recourse: ", recourse_proportion, file = training_file)
+                print("\n")
+                
             thresholds_data = {}
 
             thresholds_data['thresholds'] = thresholds_to_eval
@@ -314,7 +348,9 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             thresholds_df = pd.DataFrame(data=thresholds_data)
             best_model_thresholds_file_name = weight_dir + str(recourse_loss_weight) + '_val_thresholds_info.csv'
             thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
-            
-        print("VAL ACC: ", val_correct/len(dev_texts))
 
+        training_file.flush()
+
+
+    training_file.close()
 
