@@ -1,0 +1,18 @@
+WEIGHT: 0.3
+THRESHOLD: 0.4
+# pos preds:  403.0
+# neg preds:  97.0
+f1:  0.699
+precision:  0.571
+recall:  0.902
+acc:  0.604
+kernel width: 0.5
+len(instances) evaluated on: 500
+
+
+num none returned (errors): 9/97, 0.093
+flipped: 3/97, 0.031
+proportion with recourse: 0.812
+--------
+
+
