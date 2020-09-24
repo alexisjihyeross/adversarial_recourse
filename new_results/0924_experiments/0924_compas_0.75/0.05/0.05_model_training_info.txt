@@ -1,0 +1,3295 @@
+len(train): 4937
+train # pos: 2713.0
+train # neg: 2224.0
+len(val): 735
+
+lr: 0.002
+num epochs: 15
+delta max: 0.75
+recourse weight in loss function: 0.05
+
+EPOCH: 0
+time for epoch: 0.278 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([0., 1.]), array([  1, 734]))
+val accuracy: 0.539
+val f1: 0.7
+val precision: 0.538
+val recall: 1.0
+val num flipped: 0.0; 0/1
+val num with recourse: 0.999; 734/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 37, 698]))
+val accuracy: 0.563
+val f1: 0.706
+val precision: 0.553
+val recall: 0.977
+val num flipped: 0.0; 0/37
+val num with recourse: 0.95; 698/735
+train accuracy: 0.574
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 64, 671]))
+val accuracy: 0.586
+val f1: 0.715
+val precision: 0.568
+val recall: 0.965
+val num flipped: 0.0; 0/64
+val num with recourse: 0.913; 671/735
+train accuracy: 0.602
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([102, 633]))
+val accuracy: 0.605
+val f1: 0.718
+val precision: 0.583
+val recall: 0.934
+val num flipped: 0.0; 0/102
+val num with recourse: 0.861; 633/735
+train accuracy: 0.628
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([157, 578]))
+val accuracy: 0.645
+val f1: 0.732
+val precision: 0.616
+val recall: 0.901
+val num flipped: 0.0; 0/157
+val num with recourse: 0.786; 578/735
+train accuracy: 0.655
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([217, 518]))
+val accuracy: 0.678
+val f1: 0.74
+val precision: 0.653
+val recall: 0.856
+val num flipped: 0.0; 0/217
+val num with recourse: 0.705; 518/735
+train accuracy: 0.674
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([347, 388]))
+val accuracy: 0.691
+val f1: 0.71
+val precision: 0.716
+val recall: 0.704
+val num flipped: 0.0; 0/347
+val num with recourse: 0.528; 388/735
+train accuracy: 0.675
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([437, 298]))
+val accuracy: 0.678
+val f1: 0.658
+val precision: 0.765
+val recall: 0.577
+val num flipped: 0.0; 0/437
+val num with recourse: 0.405; 298/735
+train accuracy: 0.648
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([522, 213]))
+val accuracy: 0.649
+val f1: 0.576
+val precision: 0.822
+val recall: 0.443
+val num flipped: 0.0; 0/522
+val num with recourse: 0.29; 213/735
+train accuracy: 0.613
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([587, 148]))
+val accuracy: 0.596
+val f1: 0.453
+val precision: 0.831
+val recall: 0.311
+val num flipped: 0.0; 0/587
+val num with recourse: 0.201; 148/735
+train accuracy: 0.567
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([664,  71]))
+val accuracy: 0.529
+val f1: 0.258
+val precision: 0.845
+val recall: 0.152
+val num flipped: 0.0; 0/664
+val num with recourse: 0.097; 71/735
+train accuracy: 0.513
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([729,   6]))
+val accuracy: 0.471
+val f1: 0.03
+val precision: 1.0
+val recall: 0.015
+val num flipped: 0.0; 0/729
+val num with recourse: 0.008; 6/735
+train accuracy: 0.457
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 1
+time for epoch: 0.271 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 40, 695]))
+val accuracy: 0.57
+val f1: 0.71
+val precision: 0.557
+val recall: 0.98
+val num flipped: 0.0; 0/40
+val num with recourse: 0.946; 695/735
+train accuracy: 0.58
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 76, 659]))
+val accuracy: 0.595
+val f1: 0.717
+val precision: 0.574
+val recall: 0.957
+val num flipped: 0.0; 0/76
+val num with recourse: 0.897; 659/735
+train accuracy: 0.611
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([121, 614]))
+val accuracy: 0.626
+val f1: 0.727
+val precision: 0.598
+val recall: 0.929
+val num flipped: 0.0; 0/121
+val num with recourse: 0.835; 614/735
+train accuracy: 0.636
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([172, 563]))
+val accuracy: 0.654
+val f1: 0.735
+val precision: 0.625
+val recall: 0.891
+val num flipped: 0.0; 0/172
+val num with recourse: 0.766; 563/735
+train accuracy: 0.661
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([252, 483]))
+val accuracy: 0.687
+val f1: 0.738
+val precision: 0.671
+val recall: 0.82
+val num flipped: 0.0; 0/252
+val num with recourse: 0.657; 483/735
+train accuracy: 0.68
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([361, 374]))
+val accuracy: 0.691
+val f1: 0.705
+val precision: 0.725
+val recall: 0.686
+val num flipped: 0.0; 0/361
+val num with recourse: 0.509; 374/735
+train accuracy: 0.674
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([429, 306]))
+val accuracy: 0.678
+val f1: 0.662
+val precision: 0.758
+val recall: 0.587
+val num flipped: 0.0; 0/429
+val num with recourse: 0.416; 306/735
+train accuracy: 0.65
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([508, 227]))
+val accuracy: 0.657
+val f1: 0.595
+val precision: 0.815
+val recall: 0.468
+val num flipped: 0.0; 0/508
+val num with recourse: 0.309; 227/735
+train accuracy: 0.621
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([570, 165]))
+val accuracy: 0.611
+val f1: 0.489
+val precision: 0.83
+val recall: 0.347
+val num flipped: 0.0; 0/570
+val num with recourse: 0.224; 165/735
+train accuracy: 0.583
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([642,  93]))
+val accuracy: 0.537
+val f1: 0.303
+val precision: 0.796
+val recall: 0.187
+val num flipped: 0.0; 0/642
+val num with recourse: 0.127; 93/735
+train accuracy: 0.533
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([721,  14]))
+val accuracy: 0.479
+val f1: 0.064
+val precision: 0.929
+val recall: 0.033
+val num flipped: 0.0; 0/721
+val num with recourse: 0.019; 14/735
+train accuracy: 0.46
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 2
+time for epoch: 0.269 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([  1, 734]))
+val accuracy: 0.539
+val f1: 0.7
+val precision: 0.538
+val recall: 1.0
+val num flipped: 0.0; 0/1
+val num with recourse: 0.999; 734/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 55, 680]))
+val accuracy: 0.582
+val f1: 0.714
+val precision: 0.565
+val recall: 0.972
+val num flipped: 0.0; 0/55
+val num with recourse: 0.925; 680/735
+train accuracy: 0.594
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([ 98, 637]))
+val accuracy: 0.608
+val f1: 0.721
+val precision: 0.584
+val recall: 0.942
+val num flipped: 0.0; 0/98
+val num with recourse: 0.867; 637/735
+train accuracy: 0.628
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([159, 576]))
+val accuracy: 0.645
+val f1: 0.731
+val precision: 0.616
+val recall: 0.899
+val num flipped: 0.0; 0/159
+val num with recourse: 0.784; 576/735
+train accuracy: 0.657
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([244, 491]))
+val accuracy: 0.687
+val f1: 0.74
+val precision: 0.668
+val recall: 0.83
+val num flipped: 0.0; 0/244
+val num with recourse: 0.668; 491/735
+train accuracy: 0.68
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([353, 382]))
+val accuracy: 0.688
+val f1: 0.705
+val precision: 0.717
+val recall: 0.694
+val num flipped: 0.0; 0/353
+val num with recourse: 0.52; 382/735
+train accuracy: 0.677
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([425, 310]))
+val accuracy: 0.678
+val f1: 0.664
+val precision: 0.755
+val recall: 0.592
+val num flipped: 0.0; 0/425
+val num with recourse: 0.422; 310/735
+train accuracy: 0.652
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([507, 228]))
+val accuracy: 0.664
+val f1: 0.604
+val precision: 0.825
+val recall: 0.476
+val num flipped: 0.0; 0/507
+val num with recourse: 0.31; 228/735
+train accuracy: 0.619
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([573, 162]))
+val accuracy: 0.61
+val f1: 0.485
+val precision: 0.833
+val recall: 0.342
+val num flipped: 0.0; 0/573
+val num with recourse: 0.22; 162/735
+train accuracy: 0.583
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([650,  85]))
+val accuracy: 0.54
+val f1: 0.296
+val precision: 0.835
+val recall: 0.18
+val num flipped: 0.0; 0/650
+val num with recourse: 0.116; 85/735
+train accuracy: 0.527
+
+STATS FOR threshold = 0.75:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 3
+time for epoch: 0.265 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([  4, 731]))
+val accuracy: 0.54
+val f1: 0.7
+val precision: 0.539
+val recall: 0.997
+val num flipped: 0.0; 0/4
+val num with recourse: 0.995; 731/735
+train accuracy: 0.556
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 56, 679]))
+val accuracy: 0.581
+val f1: 0.713
+val precision: 0.564
+val recall: 0.97
+val num flipped: 0.0; 0/56
+val num with recourse: 0.924; 679/735
+train accuracy: 0.591
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([ 94, 641]))
+val accuracy: 0.605
+val f1: 0.72
+val precision: 0.582
+val recall: 0.944
+val num flipped: 0.0; 0/94
+val num with recourse: 0.872; 641/735
+train accuracy: 0.623
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([149, 586]))
+val accuracy: 0.642
+val f1: 0.732
+val precision: 0.613
+val recall: 0.909
+val num flipped: 0.0; 0/149
+val num with recourse: 0.797; 586/735
+train accuracy: 0.655
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([239, 496]))
+val accuracy: 0.686
+val f1: 0.741
+val precision: 0.665
+val recall: 0.835
+val num flipped: 0.0; 0/239
+val num with recourse: 0.675; 496/735
+train accuracy: 0.679
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([347, 388]))
+val accuracy: 0.686
+val f1: 0.705
+val precision: 0.711
+val recall: 0.699
+val num flipped: 0.0; 0/347
+val num with recourse: 0.528; 388/735
+train accuracy: 0.678
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([421, 314]))
+val accuracy: 0.68
+val f1: 0.669
+val precision: 0.755
+val recall: 0.6
+val num flipped: 0.0; 0/421
+val num with recourse: 0.427; 314/735
+train accuracy: 0.653
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([502, 233]))
+val accuracy: 0.668
+val f1: 0.611
+val precision: 0.824
+val recall: 0.486
+val num flipped: 0.0; 0/502
+val num with recourse: 0.317; 233/735
+train accuracy: 0.622
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([568, 167]))
+val accuracy: 0.614
+val f1: 0.495
+val precision: 0.832
+val recall: 0.352
+val num flipped: 0.0; 0/568
+val num with recourse: 0.227; 167/735
+train accuracy: 0.587
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([646,  89]))
+val accuracy: 0.54
+val f1: 0.302
+val precision: 0.82
+val recall: 0.185
+val num flipped: 0.0; 0/646
+val num with recourse: 0.121; 89/735
+train accuracy: 0.532
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([729,   6]))
+val accuracy: 0.471
+val f1: 0.03
+val precision: 1.0
+val recall: 0.015
+val num flipped: 0.0; 0/729
+val num with recourse: 0.008; 6/735
+train accuracy: 0.455
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 4
+time for epoch: 0.268 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 43, 692]))
+val accuracy: 0.571
+val f1: 0.71
+val precision: 0.558
+val recall: 0.977
+val num flipped: 0.0; 0/43
+val num with recourse: 0.941; 692/735
+train accuracy: 0.58
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([ 95, 640]))
+val accuracy: 0.61
+val f1: 0.723
+val precision: 0.584
+val recall: 0.947
+val num flipped: 0.0; 0/95
+val num with recourse: 0.871; 640/735
+train accuracy: 0.625
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([169, 566]))
+val accuracy: 0.656
+val f1: 0.737
+val precision: 0.625
+val recall: 0.896
+val num flipped: 0.0; 0/169
+val num with recourse: 0.77; 566/735
+train accuracy: 0.663
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([269, 466]))
+val accuracy: 0.683
+val f1: 0.729
+val precision: 0.674
+val recall: 0.795
+val num flipped: 0.0; 0/269
+val num with recourse: 0.634; 466/735
+train accuracy: 0.683
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([358, 377]))
+val accuracy: 0.682
+val f1: 0.697
+val precision: 0.714
+val recall: 0.681
+val num flipped: 0.0; 0/358
+val num with recourse: 0.513; 377/735
+train accuracy: 0.671
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([430, 305]))
+val accuracy: 0.676
+val f1: 0.66
+val precision: 0.757
+val recall: 0.585
+val num flipped: 0.0; 0/430
+val num with recourse: 0.415; 305/735
+train accuracy: 0.651
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([507, 228]))
+val accuracy: 0.659
+val f1: 0.597
+val precision: 0.816
+val recall: 0.471
+val num flipped: 0.0; 0/507
+val num with recourse: 0.31; 228/735
+train accuracy: 0.618
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([579, 156]))
+val accuracy: 0.601
+val f1: 0.468
+val precision: 0.827
+val recall: 0.327
+val num flipped: 0.0; 0/579
+val num with recourse: 0.212; 156/735
+train accuracy: 0.577
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([667,  68]))
+val accuracy: 0.522
+val f1: 0.242
+val precision: 0.824
+val recall: 0.142
+val num flipped: 0.0; 0/667
+val num with recourse: 0.093; 68/735
+train accuracy: 0.513
+
+STATS FOR threshold = 0.75:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 5
+time for epoch: 0.266 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 59, 676]))
+val accuracy: 0.582
+val f1: 0.713
+val precision: 0.565
+val recall: 0.967
+val num flipped: 0.0; 0/59
+val num with recourse: 0.92; 676/735
+train accuracy: 0.597
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([117, 618]))
+val accuracy: 0.629
+val f1: 0.731
+val precision: 0.599
+val recall: 0.937
+val num flipped: 0.0; 0/117
+val num with recourse: 0.841; 618/735
+train accuracy: 0.637
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([178, 557]))
+val accuracy: 0.663
+val f1: 0.739
+val precision: 0.632
+val recall: 0.891
+val num flipped: 0.0; 0/178
+val num with recourse: 0.758; 557/735
+train accuracy: 0.668
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([277, 458]))
+val accuracy: 0.68
+val f1: 0.725
+val precision: 0.675
+val recall: 0.782
+val num flipped: 0.0; 0/277
+val num with recourse: 0.623; 458/735
+train accuracy: 0.684
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([352, 383]))
+val accuracy: 0.687
+val f1: 0.704
+val precision: 0.715
+val recall: 0.694
+val num flipped: 0.0; 0/352
+val num with recourse: 0.521; 383/735
+train accuracy: 0.678
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([423, 312]))
+val accuracy: 0.68
+val f1: 0.668
+val precision: 0.756
+val recall: 0.597
+val num flipped: 0.0; 0/423
+val num with recourse: 0.424; 312/735
+train accuracy: 0.654
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([490, 245]))
+val accuracy: 0.673
+val f1: 0.625
+val precision: 0.816
+val recall: 0.506
+val num flipped: 0.0; 0/490
+val num with recourse: 0.333; 245/735
+train accuracy: 0.629
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([552, 183]))
+val accuracy: 0.627
+val f1: 0.526
+val precision: 0.831
+val recall: 0.385
+val num flipped: 0.0; 0/552
+val num with recourse: 0.249; 183/735
+train accuracy: 0.593
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([634, 101]))
+val accuracy: 0.546
+val f1: 0.327
+val precision: 0.802
+val recall: 0.205
+val num flipped: 0.0; 0/634
+val num with recourse: 0.137; 101/735
+train accuracy: 0.542
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([728,   7]))
+val accuracy: 0.472
+val f1: 0.035
+val precision: 1.0
+val recall: 0.018
+val num flipped: 0.0; 0/728
+val num with recourse: 0.01; 7/735
+train accuracy: 0.456
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 6
+time for epoch: 0.276 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 30, 705]))
+val accuracy: 0.559
+val f1: 0.705
+val precision: 0.55
+val recall: 0.982
+val num flipped: 0.0; 0/30
+val num with recourse: 0.959; 705/735
+train accuracy: 0.57
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 70, 665]))
+val accuracy: 0.589
+val f1: 0.715
+val precision: 0.57
+val recall: 0.959
+val num flipped: 0.0; 0/70
+val num with recourse: 0.905; 665/735
+train accuracy: 0.607
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([125, 610]))
+val accuracy: 0.634
+val f1: 0.732
+val precision: 0.603
+val recall: 0.932
+val num flipped: 0.0; 0/125
+val num with recourse: 0.83; 610/735
+train accuracy: 0.644
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([189, 546]))
+val accuracy: 0.675
+val f1: 0.746
+val precision: 0.643
+val recall: 0.889
+val num flipped: 0.0; 0/189
+val num with recourse: 0.743; 546/735
+train accuracy: 0.674
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([288, 447]))
+val accuracy: 0.682
+val f1: 0.722
+val precision: 0.68
+val recall: 0.77
+val num flipped: 0.0; 0/288
+val num with recourse: 0.608; 447/735
+train accuracy: 0.687
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([364, 371]))
+val accuracy: 0.684
+val f1: 0.697
+val precision: 0.72
+val recall: 0.676
+val num flipped: 0.0; 0/364
+val num with recourse: 0.505; 371/735
+train accuracy: 0.671
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([431, 304]))
+val accuracy: 0.68
+val f1: 0.664
+val precision: 0.763
+val recall: 0.587
+val num flipped: 0.0; 0/431
+val num with recourse: 0.414; 304/735
+train accuracy: 0.653
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([496, 239]))
+val accuracy: 0.665
+val f1: 0.612
+val precision: 0.812
+val recall: 0.491
+val num flipped: 0.0; 0/496
+val num with recourse: 0.325; 239/735
+train accuracy: 0.623
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([562, 173]))
+val accuracy: 0.616
+val f1: 0.504
+val precision: 0.827
+val recall: 0.362
+val num flipped: 0.0; 0/562
+val num with recourse: 0.235; 173/735
+train accuracy: 0.59
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([627, 108]))
+val accuracy: 0.555
+val f1: 0.35
+val precision: 0.815
+val recall: 0.223
+val num flipped: 0.0; 0/627
+val num with recourse: 0.147; 108/735
+train accuracy: 0.546
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([703,  32]))
+val accuracy: 0.498
+val f1: 0.136
+val precision: 0.906
+val recall: 0.073
+val num flipped: 0.0; 0/703
+val num with recourse: 0.044; 32/735
+train accuracy: 0.478
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 7
+time for epoch: 0.327 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 37, 698]))
+val accuracy: 0.569
+val f1: 0.71
+val precision: 0.556
+val recall: 0.982
+val num flipped: 0.0; 0/37
+val num with recourse: 0.95; 698/735
+train accuracy: 0.576
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 80, 655]))
+val accuracy: 0.595
+val f1: 0.716
+val precision: 0.574
+val recall: 0.952
+val num flipped: 0.0; 0/80
+val num with recourse: 0.891; 655/735
+train accuracy: 0.611
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([129, 606]))
+val accuracy: 0.634
+val f1: 0.731
+val precision: 0.604
+val recall: 0.927
+val num flipped: 0.0; 0/129
+val num with recourse: 0.824; 606/735
+train accuracy: 0.648
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([207, 528]))
+val accuracy: 0.683
+val f1: 0.748
+val precision: 0.653
+val recall: 0.873
+val num flipped: 0.0; 0/207
+val num with recourse: 0.718; 528/735
+train accuracy: 0.676
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([308, 427]))
+val accuracy: 0.687
+val f1: 0.72
+val precision: 0.693
+val recall: 0.749
+val num flipped: 0.0; 0/308
+val num with recourse: 0.581; 427/735
+train accuracy: 0.686
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([375, 360]))
+val accuracy: 0.688
+val f1: 0.697
+val precision: 0.731
+val recall: 0.666
+val num flipped: 0.0; 0/375
+val num with recourse: 0.49; 360/735
+train accuracy: 0.67
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([443, 292]))
+val accuracy: 0.68
+val f1: 0.658
+val precision: 0.774
+val recall: 0.572
+val num flipped: 0.0; 0/443
+val num with recourse: 0.397; 292/735
+train accuracy: 0.65
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([498, 237]))
+val accuracy: 0.665
+val f1: 0.611
+val precision: 0.814
+val recall: 0.489
+val num flipped: 0.0; 0/498
+val num with recourse: 0.322; 237/735
+train accuracy: 0.624
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([556, 179]))
+val accuracy: 0.622
+val f1: 0.516
+val precision: 0.827
+val recall: 0.375
+val num flipped: 0.0; 0/556
+val num with recourse: 0.244; 179/735
+train accuracy: 0.594
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([617, 118]))
+val accuracy: 0.563
+val f1: 0.374
+val precision: 0.814
+val recall: 0.243
+val num flipped: 0.0; 0/617
+val num with recourse: 0.161; 118/735
+train accuracy: 0.553
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([687,  48]))
+val accuracy: 0.512
+val f1: 0.19
+val precision: 0.875
+val recall: 0.106
+val num flipped: 0.0; 0/687
+val num with recourse: 0.065; 48/735
+train accuracy: 0.492
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 8
+time for epoch: 0.268 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 51, 684]))
+val accuracy: 0.582
+val f1: 0.715
+val precision: 0.564
+val recall: 0.977
+val num flipped: 0.0; 0/51
+val num with recourse: 0.931; 684/735
+train accuracy: 0.589
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([100, 635]))
+val accuracy: 0.616
+val f1: 0.726
+val precision: 0.589
+val recall: 0.947
+val num flipped: 0.0; 0/100
+val num with recourse: 0.864; 635/735
+train accuracy: 0.63
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([175, 560]))
+val accuracy: 0.667
+val f1: 0.743
+val precision: 0.634
+val recall: 0.899
+val num flipped: 0.0; 0/175
+val num with recourse: 0.762; 560/735
+train accuracy: 0.666
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([270, 465]))
+val accuracy: 0.682
+val f1: 0.728
+val precision: 0.673
+val recall: 0.792
+val num flipped: 0.0; 0/270
+val num with recourse: 0.633; 465/735
+train accuracy: 0.682
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([352, 383]))
+val accuracy: 0.684
+val f1: 0.702
+val precision: 0.713
+val recall: 0.691
+val num flipped: 0.0; 0/352
+val num with recourse: 0.521; 383/735
+train accuracy: 0.677
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([433, 302]))
+val accuracy: 0.683
+val f1: 0.666
+val precision: 0.768
+val recall: 0.587
+val num flipped: 0.0; 0/433
+val num with recourse: 0.411; 302/735
+train accuracy: 0.65
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([500, 235]))
+val accuracy: 0.663
+val f1: 0.606
+val precision: 0.813
+val recall: 0.484
+val num flipped: 0.0; 0/500
+val num with recourse: 0.32; 235/735
+train accuracy: 0.625
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([569, 166]))
+val accuracy: 0.612
+val f1: 0.492
+val precision: 0.831
+val recall: 0.349
+val num flipped: 0.0; 0/569
+val num with recourse: 0.226; 166/735
+train accuracy: 0.586
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([640,  95]))
+val accuracy: 0.543
+val f1: 0.314
+val precision: 0.811
+val recall: 0.195
+val num flipped: 0.0; 0/640
+val num with recourse: 0.129; 95/735
+train accuracy: 0.536
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([714,  21]))
+val accuracy: 0.488
+val f1: 0.096
+val precision: 0.952
+val recall: 0.051
+val num flipped: 0.0; 0/714
+val num with recourse: 0.029; 21/735
+train accuracy: 0.467
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 9
+time for epoch: 0.265 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 20, 715]))
+val accuracy: 0.554
+val f1: 0.705
+val precision: 0.547
+val recall: 0.99
+val num flipped: 0.0; 0/20
+val num with recourse: 0.973; 715/735
+train accuracy: 0.563
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 74, 661]))
+val accuracy: 0.589
+val f1: 0.714
+val precision: 0.57
+val recall: 0.954
+val num flipped: 0.0; 0/74
+val num with recourse: 0.899; 661/735
+train accuracy: 0.606
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([121, 614]))
+val accuracy: 0.62
+val f1: 0.723
+val precision: 0.594
+val recall: 0.924
+val num flipped: 0.0; 0/121
+val num with recourse: 0.835; 614/735
+train accuracy: 0.643
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([185, 550]))
+val accuracy: 0.669
+val f1: 0.743
+val precision: 0.638
+val recall: 0.889
+val num flipped: 0.0; 0/185
+val num with recourse: 0.748; 550/735
+train accuracy: 0.672
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([275, 460]))
+val accuracy: 0.686
+val f1: 0.73
+val precision: 0.678
+val recall: 0.79
+val num flipped: 0.0; 0/275
+val num with recourse: 0.626; 460/735
+train accuracy: 0.684
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([352, 383]))
+val accuracy: 0.684
+val f1: 0.702
+val precision: 0.713
+val recall: 0.691
+val num flipped: 0.0; 0/352
+val num with recourse: 0.521; 383/735
+train accuracy: 0.68
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([423, 312]))
+val accuracy: 0.686
+val f1: 0.673
+val precision: 0.763
+val recall: 0.603
+val num flipped: 0.0; 0/423
+val num with recourse: 0.424; 312/735
+train accuracy: 0.652
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([490, 245]))
+val accuracy: 0.668
+val f1: 0.619
+val precision: 0.808
+val recall: 0.501
+val num flipped: 0.0; 0/490
+val num with recourse: 0.333; 245/735
+train accuracy: 0.635
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([564, 171]))
+val accuracy: 0.622
+val f1: 0.509
+val precision: 0.842
+val recall: 0.365
+val num flipped: 0.0; 0/564
+val num with recourse: 0.233; 171/735
+train accuracy: 0.591
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([641,  94]))
+val accuracy: 0.547
+val f1: 0.319
+val precision: 0.83
+val recall: 0.197
+val num flipped: 0.0; 0/641
+val num with recourse: 0.128; 94/735
+train accuracy: 0.538
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([713,  22]))
+val accuracy: 0.49
+val f1: 0.101
+val precision: 0.955
+val recall: 0.053
+val num flipped: 0.0; 0/713
+val num with recourse: 0.03; 22/735
+train accuracy: 0.466
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 10
+time for epoch: 0.268 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 32, 703]))
+val accuracy: 0.562
+val f1: 0.707
+val precision: 0.552
+val recall: 0.982
+val num flipped: 0.0; 0/32
+val num with recourse: 0.956; 703/735
+train accuracy: 0.574
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 79, 656]))
+val accuracy: 0.593
+val f1: 0.716
+val precision: 0.573
+val recall: 0.952
+val num flipped: 0.0; 0/79
+val num with recourse: 0.893; 656/735
+train accuracy: 0.615
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([143, 592]))
+val accuracy: 0.639
+val f1: 0.732
+val precision: 0.61
+val recall: 0.914
+val num flipped: 0.0; 0/143
+val num with recourse: 0.805; 592/735
+train accuracy: 0.654
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([214, 521]))
+val accuracy: 0.687
+val f1: 0.749
+val precision: 0.658
+val recall: 0.868
+val num flipped: 0.0; 0/214
+val num with recourse: 0.709; 521/735
+train accuracy: 0.678
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([309, 426]))
+val accuracy: 0.691
+val f1: 0.724
+val precision: 0.697
+val recall: 0.752
+val num flipped: 0.0; 0/309
+val num with recourse: 0.58; 426/735
+train accuracy: 0.69
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([380, 355]))
+val accuracy: 0.687
+val f1: 0.693
+val precision: 0.732
+val recall: 0.658
+val num flipped: 0.0; 0/380
+val num with recourse: 0.483; 355/735
+train accuracy: 0.671
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([442, 293]))
+val accuracy: 0.682
+val f1: 0.66
+val precision: 0.775
+val recall: 0.575
+val num flipped: 0.0; 0/442
+val num with recourse: 0.399; 293/735
+train accuracy: 0.647
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([512, 223]))
+val accuracy: 0.665
+val f1: 0.602
+val precision: 0.834
+val recall: 0.471
+val num flipped: 0.0; 0/512
+val num with recourse: 0.303; 223/735
+train accuracy: 0.621
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([573, 162]))
+val accuracy: 0.612
+val f1: 0.488
+val precision: 0.84
+val recall: 0.344
+val num flipped: 0.0; 0/573
+val num with recourse: 0.22; 162/735
+train accuracy: 0.586
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([634, 101]))
+val accuracy: 0.559
+val f1: 0.347
+val precision: 0.851
+val recall: 0.218
+val num flipped: 0.0; 0/634
+val num with recourse: 0.137; 101/735
+train accuracy: 0.542
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([709,  26]))
+val accuracy: 0.493
+val f1: 0.114
+val precision: 0.923
+val recall: 0.061
+val num flipped: 0.0; 0/709
+val num with recourse: 0.035; 26/735
+train accuracy: 0.469
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 11
+time for epoch: 0.266 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 30, 705]))
+val accuracy: 0.562
+val f1: 0.707
+val precision: 0.552
+val recall: 0.985
+val num flipped: 0.0; 0/30
+val num with recourse: 0.959; 705/735
+train accuracy: 0.575
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 77, 658]))
+val accuracy: 0.593
+val f1: 0.716
+val precision: 0.573
+val recall: 0.954
+val num flipped: 0.0; 0/77
+val num with recourse: 0.895; 658/735
+train accuracy: 0.611
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([125, 610]))
+val accuracy: 0.629
+val f1: 0.728
+val precision: 0.6
+val recall: 0.927
+val num flipped: 0.0; 0/125
+val num with recourse: 0.83; 610/735
+train accuracy: 0.645
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([184, 551]))
+val accuracy: 0.671
+val f1: 0.744
+val precision: 0.639
+val recall: 0.891
+val num flipped: 0.0; 0/184
+val num with recourse: 0.75; 551/735
+train accuracy: 0.675
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([284, 451]))
+val accuracy: 0.684
+val f1: 0.726
+val precision: 0.681
+val recall: 0.777
+val num flipped: 0.0; 0/284
+val num with recourse: 0.614; 451/735
+train accuracy: 0.686
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([358, 377]))
+val accuracy: 0.693
+val f1: 0.707
+val precision: 0.724
+val recall: 0.691
+val num flipped: 0.0; 0/358
+val num with recourse: 0.513; 377/735
+train accuracy: 0.681
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([428, 307]))
+val accuracy: 0.69
+val f1: 0.675
+val precision: 0.772
+val recall: 0.6
+val num flipped: 0.0; 0/428
+val num with recourse: 0.418; 307/735
+train accuracy: 0.652
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([495, 240]))
+val accuracy: 0.667
+val f1: 0.614
+val precision: 0.812
+val recall: 0.494
+val num flipped: 0.0; 0/495
+val num with recourse: 0.327; 240/735
+train accuracy: 0.631
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([565, 170]))
+val accuracy: 0.615
+val f1: 0.499
+val precision: 0.829
+val recall: 0.357
+val num flipped: 0.0; 0/565
+val num with recourse: 0.231; 170/735
+train accuracy: 0.595
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([629, 106]))
+val accuracy: 0.561
+val f1: 0.355
+val precision: 0.84
+val recall: 0.225
+val num flipped: 0.0; 0/629
+val num with recourse: 0.144; 106/735
+train accuracy: 0.546
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([714,  21]))
+val accuracy: 0.488
+val f1: 0.096
+val precision: 0.952
+val recall: 0.051
+val num flipped: 0.0; 0/714
+val num with recourse: 0.029; 21/735
+train accuracy: 0.465
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 12
+time for epoch: 0.33 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([  9, 726]))
+val accuracy: 0.55
+val f1: 0.705
+val precision: 0.544
+val recall: 1.0
+val num flipped: 0.0; 0/9
+val num with recourse: 0.988; 726/735
+train accuracy: 0.556
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 64, 671]))
+val accuracy: 0.589
+val f1: 0.717
+val precision: 0.569
+val recall: 0.967
+val num flipped: 0.0; 0/64
+val num with recourse: 0.913; 671/735
+train accuracy: 0.602
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([117, 618]))
+val accuracy: 0.62
+val f1: 0.725
+val precision: 0.594
+val recall: 0.929
+val num flipped: 0.0; 0/117
+val num with recourse: 0.841; 618/735
+train accuracy: 0.643
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([178, 557]))
+val accuracy: 0.663
+val f1: 0.739
+val precision: 0.632
+val recall: 0.891
+val num flipped: 0.0; 0/178
+val num with recourse: 0.758; 557/735
+train accuracy: 0.671
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([284, 451]))
+val accuracy: 0.687
+val f1: 0.728
+val precision: 0.683
+val recall: 0.78
+val num flipped: 0.0; 0/284
+val num with recourse: 0.614; 451/735
+train accuracy: 0.687
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([367, 368]))
+val accuracy: 0.688
+val f1: 0.7
+val precision: 0.726
+val recall: 0.676
+val num flipped: 0.0; 0/367
+val num with recourse: 0.501; 368/735
+train accuracy: 0.676
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([443, 292]))
+val accuracy: 0.697
+val f1: 0.675
+val precision: 0.795
+val recall: 0.587
+val num flipped: 0.0; 0/443
+val num with recourse: 0.397; 292/735
+train accuracy: 0.649
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([509, 226]))
+val accuracy: 0.669
+val f1: 0.609
+val precision: 0.836
+val recall: 0.478
+val num flipped: 0.0; 0/509
+val num with recourse: 0.307; 226/735
+train accuracy: 0.622
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([577, 158]))
+val accuracy: 0.61
+val f1: 0.481
+val precision: 0.842
+val recall: 0.337
+val num flipped: 0.0; 0/577
+val num with recourse: 0.215; 158/735
+train accuracy: 0.584
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([638,  97]))
+val accuracy: 0.554
+val f1: 0.333
+val precision: 0.845
+val recall: 0.208
+val num flipped: 0.0; 0/638
+val num with recourse: 0.132; 97/735
+train accuracy: 0.536
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([704,  31]))
+val accuracy: 0.497
+val f1: 0.131
+val precision: 0.903
+val recall: 0.071
+val num flipped: 0.0; 0/704
+val num with recourse: 0.042; 31/735
+train accuracy: 0.477
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 13
+time for epoch: 0.27 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 30, 705]))
+val accuracy: 0.562
+val f1: 0.707
+val precision: 0.552
+val recall: 0.985
+val num flipped: 0.0; 0/30
+val num with recourse: 0.959; 705/735
+train accuracy: 0.569
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 78, 657]))
+val accuracy: 0.595
+val f1: 0.717
+val precision: 0.574
+val recall: 0.954
+val num flipped: 0.0; 0/78
+val num with recourse: 0.894; 657/735
+train accuracy: 0.61
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([128, 607]))
+val accuracy: 0.622
+val f1: 0.723
+val precision: 0.596
+val recall: 0.916
+val num flipped: 0.0; 0/128
+val num with recourse: 0.826; 607/735
+train accuracy: 0.649
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([198, 537]))
+val accuracy: 0.671
+val f1: 0.74
+val precision: 0.642
+val recall: 0.873
+val num flipped: 0.0; 0/198
+val num with recourse: 0.731; 537/735
+train accuracy: 0.673
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([285, 450]))
+val accuracy: 0.686
+val f1: 0.727
+val precision: 0.682
+val recall: 0.777
+val num flipped: 0.0; 0/285
+val num with recourse: 0.612; 450/735
+train accuracy: 0.686
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([348, 387]))
+val accuracy: 0.693
+val f1: 0.711
+val precision: 0.718
+val recall: 0.704
+val num flipped: 0.0; 0/348
+val num with recourse: 0.527; 387/735
+train accuracy: 0.685
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([417, 318]))
+val accuracy: 0.694
+val f1: 0.684
+val precision: 0.767
+val recall: 0.618
+val num flipped: 0.0; 0/417
+val num with recourse: 0.433; 318/735
+train accuracy: 0.662
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([479, 256]))
+val accuracy: 0.675
+val f1: 0.633
+val precision: 0.805
+val recall: 0.522
+val num flipped: 0.0; 0/479
+val num with recourse: 0.348; 256/735
+train accuracy: 0.639
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([544, 191]))
+val accuracy: 0.641
+val f1: 0.549
+val precision: 0.843
+val recall: 0.408
+val num flipped: 0.0; 0/544
+val num with recourse: 0.26; 191/735
+train accuracy: 0.603
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([633, 102]))
+val accuracy: 0.558
+val f1: 0.346
+val precision: 0.843
+val recall: 0.218
+val num flipped: 0.0; 0/633
+val num with recourse: 0.139; 102/735
+train accuracy: 0.546
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([710,  25]))
+val accuracy: 0.494
+val f1: 0.114
+val precision: 0.96
+val recall: 0.061
+val num flipped: 0.0; 0/710
+val num with recourse: 0.034; 25/735
+train accuracy: 0.472
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+
+EPOCH: 14
+time for epoch: 0.267 minutes
+val maj (1.0) baseline accuracy: 0.537
+val min (0.0) baseline accuracy: 0.463
+val min baseline f1: 0.0
+val maj baseline f1: 0.699
+
+
+STATS FOR threshold = 0.0:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.05:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.1:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.15:
+val preds: (array([1.]), array([735]))
+val accuracy: 0.537
+val f1: 0.699
+val precision: 0.537
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 735/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.2:
+val preds: (array([0., 1.]), array([  1, 734]))
+val accuracy: 0.539
+val f1: 0.7
+val precision: 0.538
+val recall: 1.0
+val num flipped: 0.0; 0/1
+val num with recourse: 0.999; 734/735
+train accuracy: 0.55
+
+STATS FOR threshold = 0.25:
+val preds: (array([0., 1.]), array([ 47, 688]))
+val accuracy: 0.582
+val f1: 0.717
+val precision: 0.564
+val recall: 0.982
+val num flipped: 0.064; 3/47
+val num with recourse: 0.94; 691/735
+train accuracy: 0.584
+
+STATS FOR threshold = 0.3:
+val preds: (array([0., 1.]), array([ 88, 647]))
+val accuracy: 0.6
+val f1: 0.718
+val precision: 0.578
+val recall: 0.947
+val num flipped: 0.011; 1/88
+val num with recourse: 0.882; 648/735
+train accuracy: 0.621
+
+STATS FOR threshold = 0.35:
+val preds: (array([0., 1.]), array([141, 594]))
+val accuracy: 0.634
+val f1: 0.728
+val precision: 0.606
+val recall: 0.911
+val num flipped: 0.0; 0/141
+val num with recourse: 0.808; 594/735
+train accuracy: 0.656
+
+STATS FOR threshold = 0.4:
+val preds: (array([0., 1.]), array([210, 525]))
+val accuracy: 0.676
+val f1: 0.741
+val precision: 0.65
+val recall: 0.863
+val num flipped: 0.0; 0/210
+val num with recourse: 0.714; 525/735
+train accuracy: 0.675
+
+STATS FOR threshold = 0.45:
+val preds: (array([0., 1.]), array([297, 438]))
+val accuracy: 0.691
+val f1: 0.727
+val precision: 0.692
+val recall: 0.767
+val num flipped: 0.0; 0/297
+val num with recourse: 0.596; 438/735
+train accuracy: 0.688
+
+STATS FOR threshold = 0.5:
+val preds: (array([0., 1.]), array([367, 368]))
+val accuracy: 0.691
+val f1: 0.702
+val precision: 0.728
+val recall: 0.678
+val num flipped: 0.0; 0/367
+val num with recourse: 0.501; 368/735
+train accuracy: 0.679
+
+STATS FOR threshold = 0.55:
+val preds: (array([0., 1.]), array([430, 305]))
+val accuracy: 0.706
+val f1: 0.691
+val precision: 0.793
+val recall: 0.613
+val num flipped: 0.0; 0/430
+val num with recourse: 0.415; 305/735
+train accuracy: 0.661
+
+STATS FOR threshold = 0.6:
+val preds: (array([0., 1.]), array([494, 241]))
+val accuracy: 0.668
+val f1: 0.616
+val precision: 0.813
+val recall: 0.496
+val num flipped: 0.0; 0/494
+val num with recourse: 0.328; 241/735
+train accuracy: 0.631
+
+STATS FOR threshold = 0.65:
+val preds: (array([0., 1.]), array([556, 179]))
+val accuracy: 0.627
+val f1: 0.523
+val precision: 0.838
+val recall: 0.38
+val num flipped: 0.0; 0/556
+val num with recourse: 0.244; 179/735
+train accuracy: 0.598
+
+STATS FOR threshold = 0.7:
+val preds: (array([0., 1.]), array([626, 109]))
+val accuracy: 0.562
+val f1: 0.361
+val precision: 0.835
+val recall: 0.23
+val num flipped: 0.0; 0/626
+val num with recourse: 0.148; 109/735
+train accuracy: 0.549
+
+STATS FOR threshold = 0.75:
+val preds: (array([0., 1.]), array([710,  25]))
+val accuracy: 0.494
+val f1: 0.114
+val precision: 0.96
+val recall: 0.061
+val num flipped: 0.0; 0/710
+val num with recourse: 0.034; 25/735
+train accuracy: 0.474
+
+STATS FOR threshold = 0.8:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.85:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.9:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 0.95:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+
+STATS FOR threshold = 1.0:
+val preds: (array([0.]), array([735]))
+val accuracy: 0.463
+val f1: 0.0
+val precision: 0.0
+val recall: 0.0
+val num flipped: 0.0; 0/735
+val num with recourse: 0.0; 0/735
+train accuracy: 0.45
+-------------------
+

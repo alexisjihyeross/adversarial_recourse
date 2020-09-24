@@ -133,7 +133,7 @@ def process_bail_data():
     bail_df.loc[bail_df["FILE"] == 3, "JUNKY"] = np.nan
     bail_df.loc[bail_df["PRIORS"] == -9, "PRIORS"] = np.nan
     bail_df.loc[bail_df["SCHOOL"] == 0, "SCHOOL"] = np.nan
-    bail_df['label'] = bail_df['RECID'].apply(lambda row: 1.0 if row['RECID'] == 0 else 0.0, axis=1)
+    bail_df['label'] = bail_df.apply(lambda row: 1.0 if row['RECID'] == 0 else 0.0, axis=1)
 
     bail_df = bail_df.dropna()
     bail_X = bail_df.copy()
