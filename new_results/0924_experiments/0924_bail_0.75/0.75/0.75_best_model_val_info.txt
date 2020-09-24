@@ -1,0 +1,103 @@
+lr: 0.002
+num epochs: 2
+delta max: 0.75
+
+THRESHOLD: 0.0
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.05
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.1
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.15
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.2
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.25
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.3
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.35
+val preds: (array([1.]), array([1083]))
+VAL PRECISION: 0.62
+val accuracy: 0.62
+val f1: 0.766
+val precision: 0.62
+val recall: 1.0
+val num flipped: 0; 0/0
+val num with recourse: 1.0; 1083/1083
+-------------------
+
+THRESHOLD: 0.4
+val preds: (array([0., 1.]), array([  13, 1070]))
+VAL PRECISION: 0.627
+val accuracy: 0.631
+val f1: 0.77
+val precision: 0.627
+val recall: 0.999
+val num flipped: 0.0; 0/13
+val num with recourse: 0.988; 1070/1083
+-------------------
+
