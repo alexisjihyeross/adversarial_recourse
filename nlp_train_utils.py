@@ -56,12 +56,19 @@ def get_sst_data(file_path):
     return texts, labels
 
 def antonyms(term):
-    response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
-    soup = BeautifulSoup(response.text, 'lxml')
-    return [span.text for span in soup.findAll('a', {'class': 'css-4elvh4'})] # class = .css-7854fb for less relevant
+    max_tries = 100
+    counter = 0
+    while counter < max_tries:
+        try:
+            response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
+            soup = BeautifulSoup(response.text, 'lxml')
+            return [span.text for span in soup.findAll('a', {'class': 'css-4elvh4'})] # class = .css-7854fb for less relevant
+        except:
+            counter += 1
+            continue
+    return None
 
-
-def get_candidates(model, text, max_candidates = 10):
+def get_candidates(model, text, max_candidates):
     words = word_tokenize(text)
     candidates = [None] * max_candidates
     counter = 0
@@ -79,8 +86,8 @@ def get_candidates(model, text, max_candidates = 10):
                 return list(filter(None.__ne__, candidates))
     return list(filter(None.__ne__, candidates))
 
-def get_delta_opt(model, tokenizer, device, text):
-    cands = get_candidates(model, text)
+def get_delta_opt(model, tokenizer, device, text, max_candidates):
+    cands = get_candidates(model, text, max_candidates)
     max_prob = 0
     found_cand = False
     for c in cands:
@@ -119,26 +126,26 @@ def get_tensors(device, tokenizer, text, label):
     labels = torch.LongTensor([label]).to(device)
     return input_ids, labels
 
-def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_weight):
+def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_weight, max_candidates = 10):
 
     training_file_name = weight_dir + str(recourse_loss_weight) + "_model_training_info.txt"
 
     training_file = open(training_file_name, "w")
 
     # get data
-    device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda:2') if torch.cuda.is_available() else torch.device('cpu')
 
     # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
-    train_texts = train_texts[0:50]
-    train_labels = train_labels[0:50]
+    #train_texts = train_texts[0:50]
+    #train_labels = train_labels[0:50]
 
 
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
-    dev_texts = dev_texts[0:50]
-    dev_labels = dev_labels[0:50]
+    #dev_texts = dev_texts[0:50]
+    #dev_labels = dev_labels[0:50]
 
-    batch_size = 8
+    batch_size = 1 
 
     lr = 2e-5
     num_warmup_steps = 0
@@ -156,6 +163,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     print("lr: ", lr, file = training_file)
     print("num warmup steps: ", num_warmup_steps, file = training_file)
     print("num epochs: ", num_epochs, file = training_file)
+    print("max candidates: ", max_candidates, file = training_file)
 
     optim = AdamW(model.parameters(), lr=lr)
     scheduler = get_linear_schedule_with_warmup(optim, num_warmup_steps, num_train_steps)
@@ -183,7 +191,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         for i, (text, label) in tqdm(enumerate(zip(train_texts, train_labels)), total = len(train_texts)):
             input_ids, labels = get_tensors(device, tokenizer, text, label)
             logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)
-            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
+            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
             batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
                 
                 
@@ -212,7 +220,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         print("----------", file = training_file)
         print("", file = training_file)
         print("EPOCH: ", epoch, file = training_file)
-        print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes")
+        print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes", file = training_file)
         print("", file = training_file)
 
         for t_idx, t in enumerate(thresholds_to_eval):
@@ -238,7 +246,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
             recourse_proportion = round((flipped + num_pos)/len(train_labels), 3)
             
-            print("TRAIN STATS FOR THRESHOLD = ", t, ": ", file = training_file)
+            print("TRAIN STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
             print("train acc: ", acc, file = training_file)
             print("train f1: ", f1, file = training_file)
             print("train flipped: ", flipped_proportion, file = training_file)
@@ -263,7 +271,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
             input_ids, labels = get_tensors(device, tokenizer, text, label)
             logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
-            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text)
+            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
             epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight).item()
             
             del input_ids
@@ -288,54 +296,56 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             best_epoch = False
 
         # if best epoch, eval
-        if best_epoch:
-            np_probs = np.array(pos_probs)
-            np_labels = np.array(dev_labels)
+        np_probs = np.array(pos_probs)
+        np_labels = np.array(dev_labels)
 
+        if best_epoch:
             best_model_info_file_name = weight_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
             best_model_info_file = open(best_model_info_file_name, "w")
             print("epoch: ", epoch, file = best_model_info_file)
             best_model_info_file.close()
 
-            f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
+        f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
 
-            for t_idx, t in enumerate(thresholds_to_eval):
-                label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
+        for t_idx, t in enumerate(thresholds_to_eval):
+            label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
 
-                f1 = round(f1_score(label_preds, np_labels), 3)
-                f1_by_thresh.append(f1) 
+            f1 = round(f1_score(label_preds, np_labels), 3)
+            f1_by_thresh.append(f1) 
 
-                recall = round(recall_score(label_preds, np_labels), 3)
-                recall_by_thresh.append(recall)
+            recall = round(recall_score(label_preds, np_labels), 3)
+            recall_by_thresh.append(recall)
 
-                prec = round(precision_score(label_preds, np_labels), 3)
-                precision_by_thresh.append(prec)
+            prec = round(precision_score(label_preds, np_labels), 3)
+            precision_by_thresh.append(prec)
 
-                acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
-                acc_by_thresh.append(acc) 
+            acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
+            acc_by_thresh.append(acc) 
 
-                num_neg = negative_by_thresh[t]
-                num_pos = len(dev_labels) - num_neg
-                assert (num_neg + num_pos) == len(dev_labels)
-                flipped = flipped_by_thresh[t]
+            num_neg = negative_by_thresh[t]
+            num_pos = len(dev_labels) - num_neg
+            assert (num_neg + num_pos) == len(dev_labels)
+            flipped = flipped_by_thresh[t]
 
-                if num_neg != 0:
-                    flipped_proportion = round(flipped/num_neg, 3)
-                else:
-                    flipped_proportion = 0
+            if num_neg != 0:
+                flipped_proportion = round(flipped/num_neg, 3)
+            else:
+                flipped_proportion = 0
 
-                recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
+            recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
 
-                flipped_proportion_by_thresh.append(flipped_proportion)
-                recourse_proportion_by_thresh.append(recourse_proportion)
+            flipped_proportion_by_thresh.append(flipped_proportion)
+            recourse_proportion_by_thresh.append(recourse_proportion)
 
-                print("VAL STATS FOR THRESHOLD = ", t, ": ", file = training_file)
-                print("val acc: ", acc, file = training_file)
-                print("val f1: ", f1, file = training_file)
-                print("val flipped: ", flipped_proportion, file = training_file)
-                print("val recourse: ", recourse_proportion, file = training_file)
-                print("\n")
-                
+            print("VAL STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
+            print("val acc: ", acc, file = training_file)
+            print("val f1: ", f1, file = training_file)
+            print("val flipped: ", flipped_proportion, file = training_file)
+            print("val recourse: ", recourse_proportion, file = training_file)
+            print("\n")
+        
+        if best_epoch:
+
             thresholds_data = {}
 
             thresholds_data['thresholds'] = thresholds_to_eval

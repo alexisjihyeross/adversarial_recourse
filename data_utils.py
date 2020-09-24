@@ -36,7 +36,7 @@ def process_compas_data():
     compas_X = compas_X.drop(['sex', 'race', 'c_charge_degree'], axis=1)
 
     # if person has high score give them the _negative_ model outcome
-    compas_df['label'] = compas_df.apply(lambda row: 0.0 if row['two_year_recid'] == 0 else 1.0, axis=1)
+    compas_df['label'] = compas_df.apply(lambda row: 1.0 if row['two_year_recid'] == 0 else 0.0, axis=1)
     compas_y = compas_df['label']
 
     compas_categorical_features = [3, 4, 5]
@@ -133,7 +133,7 @@ def process_bail_data():
     bail_df.loc[bail_df["FILE"] == 3, "JUNKY"] = np.nan
     bail_df.loc[bail_df["PRIORS"] == -9, "PRIORS"] = np.nan
     bail_df.loc[bail_df["SCHOOL"] == 0, "SCHOOL"] = np.nan
-    bail_df['label'] = bail_df['RECID']
+    bail_df['label'] = bail_df['RECID'].apply(lambda row: 1.0 if row['RECID'] == 0 else 0.0, axis=1)
 
     bail_df = bail_df.dropna()
     bail_X = bail_df.copy()
