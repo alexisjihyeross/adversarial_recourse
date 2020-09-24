@@ -1,0 +1,22 @@
+WEIGHT: 0.2
+THRESHOLD: 0.45
+# pos preds:  367.0
+# neg preds:  133.0
+f1:  0.748
+precision:  0.665
+recall:  0.856
+acc:  0.672
+DELTA MAX: 0.75
+len(instances) evaluated on: 500
+
+
+
+len(test): 500
+flipped/negative: 0.474, 63/133
+portion of all instances with recourse: 0.86 (includes pos preds)
+
+BASELINE STATS: 
+test maj (0.0) baseline accuracy: 0.43
+test min (1.0) baseline accuracy: 0.57
+test min baseline f1: 0.726
+
