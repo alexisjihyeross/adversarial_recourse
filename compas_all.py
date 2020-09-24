@@ -4,18 +4,18 @@ from small_model import *
 from big_model import *
 from utils import *
 
-delta_max = 0.75
+delta_max = 0.25
 
 compas_experiment_dir = 'new_results/0910_experiments/0910_compas_' + str(delta_max) + '/'
 compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names = process_compas_data()
 
-#compas_data = get_data(compas_X, compas_y)
-#write_data(compas_data, compas_experiment_dir)
+compas_data = get_data(compas_X, compas_y)
+write_data(compas_data, compas_experiment_dir)
 
-compas_data = read_data(compas_experiment_dir)
+#compas_data = read_data(compas_experiment_dir)
 
 weights = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-#run(compas_data, compas_actionable_indices, compas_categorical_features, compas_experiment_dir, weights, delta_max, do_train = True)
+run(compas_data, compas_actionable_indices, compas_categorical_features, compas_experiment_dir, weights, delta_max, do_train = True)
 
 
 data = compas_data
