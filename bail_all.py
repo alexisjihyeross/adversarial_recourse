@@ -7,7 +7,7 @@ from utils import *
 delta_max = 0.75
 
 bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names = process_bail_data()
-bail_experiment_dir = 'new_results/0910_experiments/0910_bail_' + str(delta_max) + '/'
+bail_experiment_dir = 'new_results/0924_experiments/0924_bail_' + str(delta_max) + '/'
 
 #bail_data = get_data(bail_X, bail_y)
 #write_data(bail_data, bail_experiment_dir)
@@ -30,7 +30,7 @@ for w in weights:
     # Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
     run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
 
-"""
+
 for w in weights:
     print("lime WEIGHT: ", w)    
     weight_dir = experiment_dir + str(w) + "/"
@@ -47,6 +47,7 @@ for w in weights:
     threshold = eval_thresholds[0]
     assert len(eval_thresholds) == 1    
 
-    for kernel_width in [0.5, 1, 1.5, 2.0]:
+#    for kernel_width in [0.5, 1, 1.5, 2.0]:
+    for kernel_width in [0.5]:
         lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
-"""
+
