@@ -4,10 +4,10 @@ from small_model import *
 from big_model import *
 from utils import *
 
-delta_max = 0.5
+delta_max = 0.75
 
 adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names = process_adult_data()
-adult_experiment_dir = 'new_results/0924_experiments/0924_adult_' + str(delta_max) + '/'
+adult_experiment_dir = 'new_results/NEW_0924_experiments/0924_adult_' + str(delta_max) + '/'
 
 adult_data = get_data(adult_X, adult_y)
 write_data(adult_data, adult_experiment_dir)
@@ -15,6 +15,8 @@ write_data(adult_data, adult_experiment_dir)
 #adult_data = read_data(adult_experiment_dir)
 
 weights = [0.0, 0.5, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45] 
+weights = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+weights = [0.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
 run(adult_data, adult_actionable_indices, adult_categorical_features, adult_experiment_dir, weights, delta_max, do_train = True)
 
 data = adult_data
