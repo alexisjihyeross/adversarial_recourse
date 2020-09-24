@@ -56,10 +56,17 @@ def get_sst_data(file_path):
     return texts, labels
 
 def antonyms(term):
-    response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
-    soup = BeautifulSoup(response.text, 'lxml')
-    return [span.text for span in soup.findAll('a', {'class': 'css-4elvh4'})] # class = .css-7854fb for less relevant
-
+    max_tries = 100
+    counter = 0
+    while counter < max_tries:
+        try:
+            response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
+            soup = BeautifulSoup(response.text, 'lxml')
+            return [span.text for span in soup.findAll('a', {'class': 'css-4elvh4'})] # class = .css-7854fb for less relevant
+        except:
+            counter += 1
+            continue
+    return None
 
 def get_candidates(model, text, max_candidates):
     words = word_tokenize(text)
@@ -126,7 +133,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     training_file = open(training_file_name, "w")
 
     # get data
-    device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda:2') if torch.cuda.is_available() else torch.device('cpu')
 
     # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
@@ -138,9 +145,9 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     #dev_texts = dev_texts[0:50]
     #dev_labels = dev_labels[0:50]
 
-    batch_size = 8
+    batch_size = 1 
 
-    lr = 5e-5
+    lr = 2e-5
     num_warmup_steps = 0
     num_epochs = 3
     num_train_steps = len(train_texts)/batch_size * num_epochs
