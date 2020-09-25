@@ -337,7 +337,7 @@ def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_t
         else:
             flipped_proportion = 0
 
-        recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
+        recourse_proportion = round((flipped + num_pos)/len(labels), 3)
 
         flipped_proportion_by_thresh.append(flipped_proportion)
         recourse_proportion_by_thresh.append(recourse_proportion)
