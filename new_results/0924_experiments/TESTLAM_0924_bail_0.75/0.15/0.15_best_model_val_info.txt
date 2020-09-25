@@ -1,5 +1,5 @@
 lr: 0.002
-num epochs: 10
+num epochs: 13
 delta max: 0.75
 
 THRESHOLD: 0.0
@@ -36,179 +36,179 @@ val num with recourse: 1.0; 1083/1083
 -------------------
 
 THRESHOLD: 0.15
-val preds: (array([0., 1.]), array([   4, 1079]))
+val preds: (array([0., 1.]), array([   5, 1078]))
 VAL PRECISION: 0.626
-val accuracy: 0.627
+val accuracy: 0.628
 val f1: 0.77
 val precision: 0.626
 val recall: 1.0
-val num flipped: 0.25; 1/4
-val num with recourse: 0.997; 1080/1083
+val num flipped: 0.0; 0/5
+val num with recourse: 0.995; 1078/1083
 -------------------
 
 THRESHOLD: 0.2
 val preds: (array([0., 1.]), array([  26, 1057]))
-VAL PRECISION: 0.638
-val accuracy: 0.645
-val f1: 0.778
-val precision: 0.638
-val recall: 0.999
+VAL PRECISION: 0.639
+val accuracy: 0.647
+val f1: 0.779
+val precision: 0.639
+val recall: 1.0
 val num flipped: 0.038; 1/26
 val num with recourse: 0.977; 1058/1083
 -------------------
 
 THRESHOLD: 0.25
 val preds: (array([0., 1.]), array([  56, 1027]))
-VAL PRECISION: 0.652
-val accuracy: 0.666
-val f1: 0.787
-val precision: 0.652
-val recall: 0.993
-val num flipped: 0.0; 0/56
-val num with recourse: 0.948; 1027/1083
+VAL PRECISION: 0.653
+val accuracy: 0.668
+val f1: 0.788
+val precision: 0.653
+val recall: 0.994
+val num flipped: 0.054; 3/56
+val num with recourse: 0.951; 1030/1083
 -------------------
 
 THRESHOLD: 0.3
-val preds: (array([0., 1.]), array([ 90, 993]))
-VAL PRECISION: 0.663
-val accuracy: 0.675
-val f1: 0.789
-val precision: 0.663
-val recall: 0.975
-val num flipped: 0.011; 1/90
-val num with recourse: 0.918; 994/1083
+val preds: (array([0., 1.]), array([  76, 1007]))
+VAL PRECISION: 0.658
+val accuracy: 0.671
+val f1: 0.788
+val precision: 0.658
+val recall: 0.982
+val num flipped: 0.0; 0/76
+val num with recourse: 0.93; 1007/1083
 -------------------
 
 THRESHOLD: 0.35
-val preds: (array([0., 1.]), array([153, 930]))
-VAL PRECISION: 0.68
-val accuracy: 0.685
-val f1: 0.788
-val precision: 0.68
-val recall: 0.936
-val num flipped: 0.033; 5/153
-val num with recourse: 0.863; 935/1083
+val preds: (array([0., 1.]), array([126, 957]))
+VAL PRECISION: 0.675
+val accuracy: 0.686
+val f1: 0.792
+val precision: 0.675
+val recall: 0.957
+val num flipped: 0.056; 7/126
+val num with recourse: 0.89; 964/1083
 -------------------
 
 THRESHOLD: 0.4
-val preds: (array([0., 1.]), array([208, 875]))
-VAL PRECISION: 0.694
-val accuracy: 0.69
-val f1: 0.783
-val precision: 0.694
-val recall: 0.899
-val num flipped: 0.01; 2/208
-val num with recourse: 0.81; 877/1083
+val preds: (array([0., 1.]), array([181, 902]))
+VAL PRECISION: 0.692
+val accuracy: 0.696
+val f1: 0.791
+val precision: 0.692
+val recall: 0.924
+val num flipped: 0.044; 8/181
+val num with recourse: 0.84; 910/1083
 -------------------
 
 THRESHOLD: 0.45
-val preds: (array([0., 1.]), array([267, 816]))
-VAL PRECISION: 0.711
-val accuracy: 0.694
-val f1: 0.778
-val precision: 0.711
-val recall: 0.859
-val num flipped: 0.015; 4/267
-val num with recourse: 0.757; 820/1083
+val preds: (array([0., 1.]), array([238, 845]))
+VAL PRECISION: 0.704
+val accuracy: 0.695
+val f1: 0.783
+val precision: 0.704
+val recall: 0.881
+val num flipped: 0.017; 4/238
+val num with recourse: 0.784; 849/1083
 -------------------
 
 THRESHOLD: 0.5
-val preds: (array([0., 1.]), array([332, 751]))
-VAL PRECISION: 0.724
-val accuracy: 0.688
-val f1: 0.763
-val precision: 0.724
-val recall: 0.806
-val num flipped: 0.021; 7/332
-val num with recourse: 0.7; 758/1083
+val preds: (array([0., 1.]), array([296, 787]))
+VAL PRECISION: 0.72
+val accuracy: 0.697
+val f1: 0.776
+val precision: 0.72
+val recall: 0.84
+val num flipped: 0.017; 5/296
+val num with recourse: 0.731; 792/1083
 -------------------
 
 THRESHOLD: 0.55
-val preds: (array([0., 1.]), array([395, 688]))
-VAL PRECISION: 0.74
-val accuracy: 0.681
-val f1: 0.747
-val precision: 0.74
-val recall: 0.754
-val num flipped: 0.013; 5/395
-val num with recourse: 0.64; 693/1083
+val preds: (array([0., 1.]), array([353, 730]))
+VAL PRECISION: 0.738
+val accuracy: 0.698
+val f1: 0.767
+val precision: 0.738
+val recall: 0.799
+val num flipped: 0.014; 5/353
+val num with recourse: 0.679; 735/1083
 -------------------
 
 THRESHOLD: 0.6
-val preds: (array([0., 1.]), array([467, 616]))
-VAL PRECISION: 0.753
-val accuracy: 0.665
-val f1: 0.719
-val precision: 0.753
-val recall: 0.687
-val num flipped: 0.009; 4/467
-val num with recourse: 0.572; 620/1083
+val preds: (array([0., 1.]), array([412, 671]))
+VAL PRECISION: 0.745
+val accuracy: 0.681
+val f1: 0.743
+val precision: 0.745
+val recall: 0.741
+val num flipped: 0.01; 4/412
+val num with recourse: 0.623; 675/1083
 -------------------
 
 THRESHOLD: 0.65
-val preds: (array([0., 1.]), array([562, 521]))
-VAL PRECISION: 0.774
-val accuracy: 0.64
-val f1: 0.674
-val precision: 0.774
-val recall: 0.597
-val num flipped: 0.011; 6/562
-val num with recourse: 0.487; 527/1083
+val preds: (array([0., 1.]), array([498, 585]))
+VAL PRECISION: 0.747
+val accuracy: 0.644
+val f1: 0.694
+val precision: 0.747
+val recall: 0.647
+val num flipped: 0.01; 5/498
+val num with recourse: 0.545; 590/1083
 -------------------
 
 THRESHOLD: 0.7
-val preds: (array([0., 1.]), array([674, 409]))
-VAL PRECISION: 0.795
-val accuracy: 0.599
-val f1: 0.6
-val precision: 0.795
-val recall: 0.481
-val num flipped: 0.003; 2/674
-val num with recourse: 0.38; 411/1083
+val preds: (array([0., 1.]), array([618, 465]))
+VAL PRECISION: 0.787
+val accuracy: 0.623
+val f1: 0.642
+val precision: 0.787
+val recall: 0.542
+val num flipped: 0.011; 7/618
+val num with recourse: 0.436; 472/1083
 -------------------
 
 THRESHOLD: 0.75
-val preds: (array([0., 1.]), array([772, 311]))
-VAL PRECISION: 0.826
-val accuracy: 0.564
-val f1: 0.521
-val precision: 0.826
-val recall: 0.381
-val num flipped: 0.001; 1/772
-val num with recourse: 0.288; 312/1083
+val preds: (array([0., 1.]), array([751, 332]))
+VAL PRECISION: 0.828
+val accuracy: 0.578
+val f1: 0.546
+val precision: 0.828
+val recall: 0.407
+val num flipped: 0.003; 2/751
+val num with recourse: 0.308; 334/1083
 -------------------
 
 THRESHOLD: 0.8
-val preds: (array([0., 1.]), array([859, 224]))
-VAL PRECISION: 0.875
-val accuracy: 0.532
-val f1: 0.436
-val precision: 0.875
-val recall: 0.29
-val num flipped: 0.001; 1/859
-val num with recourse: 0.208; 225/1083
+val preds: (array([0., 1.]), array([843, 240]))
+VAL PRECISION: 0.858
+val accuracy: 0.536
+val f1: 0.45
+val precision: 0.858
+val recall: 0.305
+val num flipped: 0.001; 1/843
+val num with recourse: 0.223; 241/1083
 -------------------
 
 THRESHOLD: 0.85
-val preds: (array([0., 1.]), array([955, 128]))
-VAL PRECISION: 0.906
-val accuracy: 0.473
-val f1: 0.289
-val precision: 0.906
-val recall: 0.172
-val num flipped: 0.0; 0/955
-val num with recourse: 0.118; 128/1083
+val preds: (array([0., 1.]), array([965, 118]))
+VAL PRECISION: 0.89
+val accuracy: 0.462
+val f1: 0.265
+val precision: 0.89
+val recall: 0.156
+val num flipped: 0.002; 2/965
+val num with recourse: 0.111; 120/1083
 -------------------
 
 THRESHOLD: 0.9
-val preds: (array([0., 1.]), array([1051,   32]))
-VAL PRECISION: 0.938
-val accuracy: 0.403
-val f1: 0.085
-val precision: 0.938
-val recall: 0.044
-val num flipped: 0.0; 0/1051
-val num with recourse: 0.03; 32/1083
+val preds: (array([0., 1.]), array([1057,   26]))
+VAL PRECISION: 0.962
+val accuracy: 0.399
+val f1: 0.071
+val precision: 0.962
+val recall: 0.037
+val num flipped: 0.0; 0/1057
+val num with recourse: 0.024; 26/1083
 -------------------
 
 THRESHOLD: 0.95
