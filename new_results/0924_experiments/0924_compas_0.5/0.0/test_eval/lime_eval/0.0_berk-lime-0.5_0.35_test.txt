@@ -10,3 +10,9 @@ kernel width: 0.5
 len(instances) evaluated on: 500
 
 
+num none returned (errors): 25/137, 0.182
+flipped: 34/137, 0.248
+proportion with recourse: 0.794
+--------
+
+

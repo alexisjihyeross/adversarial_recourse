@@ -12,3 +12,9 @@ DELTA MAX: 0.75
 len(instances) evaluated on: 500
 
 
+num none returned: 0/342, 0.0
+flipped: 239/342, 0.699
+proportion with recourse: 0.794
+--------
+
+
