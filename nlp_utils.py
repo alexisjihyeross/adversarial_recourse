@@ -389,7 +389,7 @@ def run_evaluate(weight_dir, weight, tokenizer, device, max_candidates = 10):
                     flipped_by_thresh[t] += 1
 
     f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = \
-        evaluate(pos_probs, dev_labels, thresholds_to_eval, None, negative_by_thresh, flipped_by_thresh, "test")
+        evaluate(pos_probs, test_labels, thresholds_to_eval, None, negative_by_thresh, flipped_by_thresh, "test")
 
 
     thresholds_data = {}
