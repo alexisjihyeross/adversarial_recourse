@@ -353,25 +353,27 @@ def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_t
 
 
 
-def run_evaluate(weight_dir, weight):
+def run_evaluate(weight_dir, weight, tokenizer, device, max_candidates = 10):
     model = load_trained_model(weight_dir, weight)
+    model = model.to(device)
     test_texts, test_labels = get_sst_data('data/nlp_data/test.txt')
 
     pos_probs = []
 
     thresholds_info = get_threshold_info(weight_dir, weight)
 
-    f1s = threshold_df['f1s'] 
+    thresholds = list(thresholds_info['thresholds'])
+
+    f1s = thresholds_info['f1s'] 
     thresholds_to_eval = [thresholds[np.argmax(f1s)]]
 
     flipped_by_thresh = {thresh: 0 for thresh in thresholds_to_eval}
     negative_by_thresh = {thresh :0 for thresh in thresholds_to_eval}
 
-    for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
+    for i, (text, label) in tqdm(enumerate(zip(test_texts, test_labels)), total = len(test_texts)):
         input_ids, labels = get_tensors(device, tokenizer, text, label)
         logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
         _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
-        epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight).item()
         
         del input_ids
         del labels
