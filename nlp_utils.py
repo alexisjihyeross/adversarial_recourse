@@ -20,6 +20,7 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 
 import pandas as pd
 import time
+from utils import get_threshold_info
 
 
 def load_model(device, model_name = 'bert-base-uncased'):
@@ -218,9 +219,6 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
                     negative_by_thresh[t] += 1
                     if delta_prob.item() >= t:
                         flipped_by_thresh[t] += 1
-            
-        np_probs = np.array(pos_probs)
-        np_labels = np.array(train_labels)
 
         # write train info
         print("----------", file = training_file)
@@ -229,35 +227,9 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes", file = training_file)
         print("", file = training_file)
 
-        for t_idx, t in enumerate(thresholds_to_eval):
-            label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
+        f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = \
+            evaluate(pos_probs, train_labels, thresholds_to_eval, training_file, negative_by_thresh, flipped_by_thresh, "val")
 
-            f1 = round(f1_score(label_preds, np_labels), 3)
-
-            recall = round(recall_score(label_preds, np_labels), 3)
-
-            prec = round(precision_score(label_preds, np_labels), 3)
-
-            acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
-
-            num_neg = negative_by_thresh[t]
-            num_pos = len(train_labels) - num_neg
-            assert (num_neg + num_pos) == len(train_labels)
-            flipped = flipped_by_thresh[t]
-
-            if num_neg != 0:
-                flipped_proportion = round(flipped/num_neg, 3)
-            else:
-                flipped_proportion = 0
-
-            recourse_proportion = round((flipped + num_pos)/len(train_labels), 3)
-            
-            print("TRAIN STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
-            print("train acc: ", acc, file = training_file)
-            print("train f1: ", f1, file = training_file)
-            print("train flipped: ", flipped_proportion, file = training_file)
-            print("train recourse: ", recourse_proportion, file = training_file)
-            print("\n")
 
         print("Train (avg) epoch loss: ", train_epoch_loss/len(train_texts))
         
@@ -301,54 +273,15 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         else:
             best_epoch = False
 
-        # if best epoch, eval
-        np_probs = np.array(pos_probs)
-        np_labels = np.array(dev_labels)
+
+        f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = \
+            evaluate(pos_probs, dev_labels, thresholds_to_eval, training_file, negative_by_thresh, flipped_by_thresh, "val")
 
         if best_epoch:
             best_model_info_file_name = weight_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
             best_model_info_file = open(best_model_info_file_name, "w")
             print("epoch: ", epoch, file = best_model_info_file)
             best_model_info_file.close()
-
-        f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
-
-        for t_idx, t in enumerate(thresholds_to_eval):
-            label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
-
-            f1 = round(f1_score(label_preds, np_labels), 3)
-            f1_by_thresh.append(f1) 
-
-            recall = round(recall_score(label_preds, np_labels), 3)
-            recall_by_thresh.append(recall)
-
-            prec = round(precision_score(label_preds, np_labels), 3)
-            precision_by_thresh.append(prec)
-
-            acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
-            acc_by_thresh.append(acc) 
-
-            num_neg = negative_by_thresh[t]
-            num_pos = len(dev_labels) - num_neg
-            assert (num_neg + num_pos) == len(dev_labels)
-            flipped = flipped_by_thresh[t]
-
-            if num_neg != 0:
-                flipped_proportion = round(flipped/num_neg, 3)
-            else:
-                flipped_proportion = 0
-
-            recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
-
-            flipped_proportion_by_thresh.append(flipped_proportion)
-            recourse_proportion_by_thresh.append(recourse_proportion)
-
-            print("VAL STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
-            print("val acc: ", acc, file = training_file)
-            print("val f1: ", f1, file = training_file)
-            print("val flipped: ", flipped_proportion, file = training_file)
-            print("val recourse: ", recourse_proportion, file = training_file)
-            print("\n")
         
         if best_epoch:
 
@@ -371,4 +304,105 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
     training_file.close()
 
-def evaluate
+def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_thresh, flipped_by_thresh, data_stub):
+
+    # if best epoch, eval
+    np_probs = np.array(pos_probs)
+    np_labels = np.array(labels)
+
+    f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = [], [], [], [], [], []
+
+    for t_idx, t in enumerate(thresholds_to_eval):
+        label_preds = np.array([0.0 if a < t else 1.0 for a in np_probs])
+
+        f1 = round(f1_score(label_preds, np_labels), 3)
+        f1_by_thresh.append(f1) 
+
+        recall = round(recall_score(label_preds, np_labels), 3)
+        recall_by_thresh.append(recall)
+
+        prec = round(precision_score(label_preds, np_labels), 3)
+        precision_by_thresh.append(prec)
+
+        acc = round(np.sum(label_preds == np_labels)/np_labels.shape[0], 3)
+        acc_by_thresh.append(acc) 
+
+        num_neg = negative_by_thresh[t]
+        num_pos = len(labels) - num_neg
+        assert (num_neg + num_pos) == len(labels)
+        flipped = flipped_by_thresh[t]
+
+        if num_neg != 0:
+            flipped_proportion = round(flipped/num_neg, 3)
+        else:
+            flipped_proportion = 0
+
+        recourse_proportion = round((flipped + num_pos)/len(dev_labels), 3)
+
+        flipped_proportion_by_thresh.append(flipped_proportion)
+        recourse_proportion_by_thresh.append(recourse_proportion)
+
+        print(data_stub + " STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
+        print(data_stub + " acc: ", acc, file = training_file)
+        print(data_stub + " f1: ", f1, file = training_file)
+        print(data_stub + " flipped: ", flipped_proportion, file = training_file)
+        print(data_stub + " recourse: ", recourse_proportion, file = training_file)
+        print("\n")
+
+    return f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh
+
+
+
+def run_evaluate(weight_dir, weight):
+    model = load_trained_model(weight_dir, weight)
+    test_texts, test_labels = get_sst_data('data/nlp_data/test.txt')
+
+    pos_probs = []
+
+    thresholds_info = get_threshold_info(weight_dir, weight)
+
+    f1s = threshold_df['f1s'] 
+    thresholds_to_eval = [thresholds[np.argmax(f1s)]]
+
+    flipped_by_thresh = {thresh: 0 for thresh in thresholds_to_eval}
+    negative_by_thresh = {thresh :0 for thresh in thresholds_to_eval}
+
+    for i, (text, label) in tqdm(enumerate(zip(dev_texts, dev_labels)), total = len(dev_texts)):
+        input_ids, labels = get_tensors(device, tokenizer, text, label)
+        logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
+        _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
+        epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight).item()
+        
+        del input_ids
+        del labels
+        del logits
+        torch.cuda.empty_cache()
+        
+        pos_probs.append(pos_prob.item())
+
+        for t in thresholds_to_eval:
+            if pos_prob.item() < t:
+                negative_by_thresh[t] += 1
+                if delta_prob.item() >= t:
+                    flipped_by_thresh[t] += 1
+
+    f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = \
+        evaluate(pos_probs, dev_labels, thresholds_to_eval, None, negative_by_thresh, flipped_by_thresh, "test")
+
+
+    thresholds_data = {}
+
+    thresholds_data['thresholds'] = thresholds_to_eval
+    thresholds_data['f1s'] = f1_by_thresh
+    thresholds_data['accs'] = acc_by_thresh
+    thresholds_data['recalls'] = recall_by_thresh
+    thresholds_data['precisions'] = precision_by_thresh
+    thresholds_data['flipped_proportion'] = flipped_proportion_by_thresh
+    thresholds_data['recourse_proportion'] = recourse_proportion_by_thresh
+    thresholds_df = pd.DataFrame(data=thresholds_data)
+    
+    best_model_thresholds_file_name = weight_dir + str(recourse_loss_weight) + '_test_thresholds_info.csv'
+    thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
+
+
+

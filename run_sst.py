@@ -3,7 +3,7 @@ import os
 import torch
 from nlp_utils import *
 
-recourse_loss_weight = 0.1
+recourse_loss_weight = 0.3
 weight_dir = 'test_nlp/new/' + str(recourse_loss_weight) + "/"
 if not os.path.exists(weight_dir):
     os.makedirs(weight_dir)
@@ -14,3 +14,4 @@ device = torch.device('cuda:2') if torch.cuda.is_available() else torch.device('
 model, tokenizer = load_model(device, model_name = 'bert-base-uncased')
 
 train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_weight)
+run_evaluate(weight_dir, recourse_loss_weight)
