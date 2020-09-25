@@ -4,7 +4,7 @@ from small_model import *
 from big_model import *
 from utils import *
 
-delta_max = 0.75
+delta_max = 0.25
 
 compas_experiment_dir = 'new_results/NEW_0924_experiments/0924_compas_' + str(delta_max) + '/'
 compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names = process_compas_data()
