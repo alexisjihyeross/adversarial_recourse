@@ -1,7 +1,7 @@
 import tensorflow as tf
 from alibi.explainers import CounterFactual
 from tqdm import tqdm_notebook as tqdm
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import f1_score, precision_score, recall_score, precision_recall_curve
 import os
 import torch
 import numpy as np
@@ -687,7 +687,8 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"
 
-    out_dir = model_dir + "test_eval/minority_exp_prec/"
+    minority_dir = 'minority_exp_fixed_prec/'
+    out_dir = model_dir + "test_eval/" + minority_dir 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -719,12 +720,24 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     metric = "precisions"
     if only_eval_at_max_f1:
         metrics = threshold_df[metric] 
-
         # only evaluate at the threshold that maximizes f1 score on val data
         eval_thresholds = [thresholds[np.argmax(metrics)]]
 
+    # eval at fixed precision
+    prec_target = 0.65
     else:
-        eval_thresholds = thresholds
+        val_data = dict_data['X_val']
+        val_labels = dict_data['y_val']
+        torch_data = torch.from_numpy(val_data.values).float()
+        torch_labels = torch.from_numpy(val_labels.values).float()
+        y_prob = model(torch_data).detach().numpy()
+        y_true = torch_labels.detach().numpy()
+
+        precision, recall, all_thresholds = precision_recall_curve(y_true, y_prob)
+        idx = (np.abs(precisions - prec_target)).argmin()
+        eval_thresholds = [all_thresholds[idx]]
+
+#        eval_thresholds = thresholds
 
     # lists in which to store results for diff thresholds
     wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
@@ -734,10 +747,10 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     # WHITE DATA:
 
     # name of file where to output all results for different thresholds
-    wachter_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "WHITE_wachter_thresholds_test_results.csv"
+    wachter_thresholds_file_name = model_dir + "test_eval/" + minority_dir + "WHITE_wachter_thresholds_test_results.csv"
 
     # name of file where to output all results for different thresholds
-    our_thresholds_file_name = model_dir + "test_eval/minority_exp/" + "WHITE_our_thresholds_test_results.csv"
+    our_thresholds_file_name = model_dir + "test_eval/" + minority_dir + "WHITE_our_thresholds_test_results.csv"
 
     
     for threshold in eval_thresholds:
