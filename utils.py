@@ -655,6 +655,8 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
         print("WEIGHT: ", w)
         print(data['X_train'].values[0])
         model = SmallModel(len(data['X_train'].values[0]))
+
+        #model = BigModel(len(data['X_train'].values[0]))
         
         torch_X_train = torch.from_numpy(data['X_train'].values).float()
         torch_y_train = torch.from_numpy(data['y_train'].values).float()
@@ -685,7 +687,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"
 
-    out_dir = model_dir + "test_eval/minority_exp/"
+    out_dir = model_dir + "test_eval/minority_exp_prec/"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -713,12 +715,13 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         threshold_df = get_threshold_info(model_dir, w)
         thresholds = list(threshold_df['thresholds'])
 
-    f1s = []
+    metrics = []
+    metric = "precisions"
     if only_eval_at_max_f1:
-        f1s = threshold_df['f1s'] 
+        metrics = threshold_df[metric] 
 
         # only evaluate at the threshold that maximizes f1 score on val data
-        eval_thresholds = [thresholds[np.argmax(f1s)]]
+        eval_thresholds = [thresholds[np.argmax(metrics)]]
 
     else:
         eval_thresholds = thresholds

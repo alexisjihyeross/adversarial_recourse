@@ -1,0 +1,10 @@
+len(train): 4937
+train # pos: 2715.0
+train # neg: 2222.0
+len(val): 735
+
+lr: 0.002
+num epochs: 15
+delta max: 0.75
+recourse weight in loss function: 0.0
+

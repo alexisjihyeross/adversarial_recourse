@@ -4,15 +4,15 @@ from small_model import *
 from big_model import *
 from utils import *
 
-delta_max = 0.25
+delta_max = 0.75
 
-compas_experiment_dir = 'new_results/NEW_0924_experiments/0924_compas_' + str(delta_max) + '/'
+compas_experiment_dir = 'new_results/NEW_0924_experiments/0924_big_compas_' + str(delta_max) + '/'
 compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names = process_compas_data()
 
 compas_data = get_data(compas_X, compas_y)
 write_data(compas_data, compas_experiment_dir)
 
-#compas_data = read_data(compas_experiment_dir)
+compas_data = read_data(compas_experiment_dir)
 
 weights = [0.0, 0.5, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45]
 weights = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
@@ -34,7 +34,7 @@ for w in weights:
     # Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
     run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
 
-
+"""
 for w in weights:
     print("lime WEIGHT: ", w)    
     weight_dir = experiment_dir + str(w) + "/"
@@ -54,4 +54,4 @@ for w in weights:
     # for kernel_width in [0.5, 1, 1.5, 2.0]:
     for kernel_width in [0.5]:
         lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
-
+"""
