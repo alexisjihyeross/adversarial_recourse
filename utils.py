@@ -246,6 +246,7 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     threshold_bounds = []
     ds = []
     max_f1s = []
+    max_accs = []
     max_thresh = []
 
     for epsilon in epsilons:
@@ -255,20 +256,24 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
 
         max_f1 = 0
         max_t = None
+        max_acc = None
         for t_cand in np.linspace(0, t, 10):
 
             y_pred = [0.0 if a < t_cand else 1.0 for a in (model(torch_data).detach().numpy())]
             y_true = ((torch_labels).detach().numpy())
             y_prob_pred = model(torch_data).detach().numpy()
         
-            f1 = round(f1_score(y_true, y_pred), 3)        
+            f1 = round(f1_score(y_true, y_pred), 3)     
+            acc = round(np.sum(y_pred == y_true)/(y_true).shape[0], 3)
 
             if f1 > max_f1:
                 max_f1 = f1
+                max_acc = acc
                 max_t = round(t_cand, 3)
 
         max_f1s.append(max_f1)
         max_thresh.append(max_t)
+        max_accs.append(max_acc)
 
 
 
@@ -277,6 +282,8 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     thresholds_data['epsilons'] = epsilons
     thresholds_data['d'] = ds
     thresholds_data['max_f1'] = max_f1s
+    thresholds_data['max_accs'] = max_accs
+
     thresholds_data['actual_thresh'] = max_thresh
 
     thresholds_df = pd.DataFrame(data=thresholds_data)
