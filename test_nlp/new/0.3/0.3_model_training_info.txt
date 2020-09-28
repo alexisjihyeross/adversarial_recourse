@@ -1,0 +1,9 @@
+len(train):  6920
+train # pos:  3610.0
+train # neg:  3310.0
+len(val):  872
+
+lr:  2e-05
+num warmup steps:  0
+num epochs:  3
+max candidates:  10
