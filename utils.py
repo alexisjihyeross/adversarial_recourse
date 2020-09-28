@@ -724,8 +724,8 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         eval_thresholds = [thresholds[np.argmax(metrics)]]
 
     # eval at fixed precision
-    prec_target = 0.65
     else:
+        prec_target = 0.65
         val_data = dict_data['X_val']
         val_labels = dict_data['y_val']
         torch_data = torch.from_numpy(val_data.values).float()
