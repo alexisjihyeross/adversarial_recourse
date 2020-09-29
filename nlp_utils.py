@@ -353,14 +353,14 @@ def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_t
 
 
 
-def run_evaluate(weight_dir, weight, tokenizer, device, max_candidates = 10):
-    model = load_trained_model(weight_dir, weight)
+def run_evaluate(weight_dir, recourse_loss_weight, tokenizer, device, max_candidates = 10):
+    model = load_trained_model(weight_dir, recourse_loss_weight)
     model = model.to(device)
     test_texts, test_labels = get_sst_data('data/nlp_data/test.txt')
 
     pos_probs = []
 
-    thresholds_info = get_threshold_info(weight_dir, weight)
+    thresholds_info = get_threshold_info(weight_dir, recourse_loss_weight)
 
     thresholds = list(thresholds_info['thresholds'])
 

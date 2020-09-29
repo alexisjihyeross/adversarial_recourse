@@ -682,7 +682,7 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
         print("DONE EVALUATING FOR WEIGHT: ", w)
 
 def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
-    thresholds = None, only_eval_at_max_f1 = True, lam_init = 0.001, max_lam_steps = 10, data_indices = range(0, 500), minority_indices = [], white_indices = []):
+    thresholds = None, only_eval_at_max_f1 = False, lam_init = 0.001, max_lam_steps = 10, data_indices = range(0, 500), minority_indices = [], white_indices = []):
 
     # define the data indices to consider
     model_dir = experiment_dir + str(w) + "/"

@@ -1,0 +1,20 @@
+WEIGHT: 0.65
+THRESHOLD: 0.5
+# pos preds:  420.0
+# neg preds:  80.0
+f1:  0.797
+precision:  0.712
+recall:  0.906
+acc:  0.696
+LAM INIT: 0.001
+MAX LAM STEPS: 10
+DELTA MAX: 0.75
+len(instances) evaluated on: 500
+
+
+num none returned: 0/80, 0.0
+flipped: 61/80, 0.762
+proportion with recourse: 0.962
+--------
+
+
