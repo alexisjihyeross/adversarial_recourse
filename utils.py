@@ -733,9 +733,10 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         y_prob = model(torch_data).detach().numpy()
         y_true = torch_labels.detach().numpy()
 
-        precision, recall, all_thresholds = precision_recall_curve(y_true, y_prob)
+        precisions, recall, all_thresholds = precision_recall_curve(y_true, y_prob)
         idx = (np.abs(precisions - prec_target)).argmin()
         eval_thresholds = [all_thresholds[idx]]
+        print("EVAL THRESHOLDS: ", eval_thresholds)
 
 #        eval_thresholds = thresholds
 
