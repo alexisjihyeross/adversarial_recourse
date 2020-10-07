@@ -132,7 +132,6 @@ def get_pred(model, tokenizer, device, input_ids, labels):
     return logits, labels, pos_prob
 
 def get_tensors(device, tokenizer, text, label):
-    print(device)
     encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
     input_ids = encoding.to(device)
     labels = torch.LongTensor([label]).to(device)
