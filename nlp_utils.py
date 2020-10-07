@@ -20,8 +20,12 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 
 import pandas as pd
 import time
-from utils import get_threshold_info
 
+def get_threshold_info(model_dir, weight):
+    # this is based on the value of this name in the train function
+    best_model_thresholds_file_name = model_dir + str(weight) + '_val_thresholds_info.csv'
+    threshold_df = pd.read_csv(best_model_thresholds_file_name, dtype=np.float64, index_col = 'index')
+    return threshold_df
 
 def load_model(device, model_name = 'bert-base-uncased'):
     print("loading model...")
