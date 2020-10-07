@@ -144,7 +144,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     training_file = open(training_file_name, "w")
 
     # get data
-    device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # load model and tokenizer    
     train_texts, train_labels = get_sst_data('data/nlp_data/train.txt')
