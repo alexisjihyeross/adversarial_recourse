@@ -73,7 +73,7 @@ def antonyms(term):
         try:
             response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
             soup = BeautifulSoup(response.text, 'lxml')
-            return [span.text for span in soup.findAll('a', {'class': 'css-4elvh4'})] # class = .css-7854fb for less relevant
+            return [span.text for span in soup.findAll('a', {'class': 'css-itvgb'})]
         except:
             counter += 1
             continue
@@ -161,7 +161,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
     lr = 2e-5
     num_warmup_steps = 0
-    num_epochs = 3
+    num_epochs = 2
     num_train_steps = len(train_texts)/batch_size * num_epochs
 
 
@@ -199,11 +199,14 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         model.train()
         
         pos_probs = []
+        num_no_cands = 0
 
         for i, (text, label) in tqdm(enumerate(zip(train_texts, train_labels)), total = len(train_texts)):
             input_ids, labels = get_tensors(device, tokenizer, text, label)
             logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)
-            _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
+            cand_text, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
+            if cand_text == text:
+                num_no_cands += 1
             batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
                 
                 
@@ -230,6 +233,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
         print("", file = training_file)
         print("EPOCH: ", epoch, file = training_file)
         print("training time for epoch: ", round((time.time() - epoch_start)/60, 3), " minutes", file = training_file)
+        print("num no cands: ", num_no_cands, " out of ", len(train_texts), file = training_file)
         print("", file = training_file)
 
         f1_by_thresh, recall_by_thresh, precision_by_thresh, acc_by_thresh, flipped_proportion_by_thresh, recourse_proportion_by_thresh = \
@@ -348,8 +352,10 @@ def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_t
         recourse_proportion_by_thresh.append(recourse_proportion)
 
         print(data_stub + " STATS FOR THRESHOLD = " + str(t) + ": ", file = training_file)
-        print(data_stub + " acc: ", acc, file = training_file)
         print(data_stub + " f1: ", f1, file = training_file)
+        print(data_stub + " acc: ", acc, file = training_file)
+        print(data_stub + " prec: ", prec, file = training_file)
+        print(data_stub + " recall: ", recall, file = training_file)
         print(data_stub + " flipped: ", flipped_proportion, file = training_file)
         print(data_stub + " recourse: ", recourse_proportion, file = training_file)
         print("\n")
@@ -376,7 +382,7 @@ def run_evaluate(weight_dir, recourse_loss_weight, tokenizer, device, max_candid
     negative_by_thresh = {thresh :0 for thresh in thresholds_to_eval}
 
     for i, (text, label) in tqdm(enumerate(zip(test_texts, test_labels)), total = len(test_texts)):
-        input_ids, labels = get_tensors(device, tokenizer, text, label)
+        input_ids, labels = get_tensors(device, tokenizer, text, label) 
         logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
         _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
         

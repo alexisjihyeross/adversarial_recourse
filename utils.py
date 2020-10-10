@@ -202,7 +202,7 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data_indices, actionable_indices, epsilons, d, model_dir):
+def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, d, model_dir):
     """
     calculate the optimal delta using linear program
 
@@ -227,8 +227,10 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
 
     model.eval()
 
-    data = X_test.iloc[data_indices]    
-    labels = y_test.iloc[data_indices]
+
+    X_val, y_val = dict_data['X_val'], dict_data['y_val']
+    data = X_val  
+    labels = y_val
 
     torch_data = torch.from_numpy(data.values).float()
     torch_labels = torch.from_numpy(labels.values)
@@ -245,9 +247,12 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
 
     threshold_bounds = []
     ds = []
-    max_f1s = []
-    max_accs = []
+    test_f1s = []
+    test_accs = []
+    test_precisions = []
+    test_recalls = []
     max_thresh = []
+    test_recourse_proportions = []
 
     for epsilon in epsilons:
         t = compute_t(probs, 1 - epsilon, d)
@@ -256,7 +261,6 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
 
         max_f1 = 0
         max_t = None
-        max_acc = None
         for t_cand in np.linspace(0, t, 10):
 
             y_pred = [0.0 if a < t_cand else 1.0 for a in (model(torch_data).detach().numpy())]
@@ -264,16 +268,38 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
             y_prob_pred = model(torch_data).detach().numpy()
         
             f1 = round(f1_score(y_true, y_pred), 3)     
-            acc = round(np.sum(y_pred == y_true)/(y_true).shape[0], 3)
 
             if f1 > max_f1:
                 max_f1 = f1
-                max_acc = acc
                 max_t = round(t_cand, 3)
 
-        max_f1s.append(max_f1)
+        test_torch_data = torch.from_numpy(dict_data['X_test'].values).float()
+        test_labels = torch.from_numpy(dict_data['y_test'].values).float()
+
+        flipped = 0
+        for i in range(len(test_labels)):
+            x = test_torch_data[i]              # data point
+            
+            if model(x).item() < max_t:
+                delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+                if (model(x + delta_opt).item()) >= max_t:
+                    flipped += 1
+
+        y_pred = [0.0 if a < max_t else 1.0 for a in (model(test_torch_data).detach().numpy())]
+        y_true = ((test_labels).detach().numpy())
+        num_pos = sum(y_pred)
+        test_f1 = round(f1_score(y_true, y_pred), 3)  
+        test_acc = round(np.sum(y_pred == y_true)/(y_true).shape[0], 3)
+        test_prec = round(precision_score(y_true, y_pred), 3)  
+        test_recall = round(recall_score(y_true, y_pred), 3)  
+        test_recourse_proportion = round((num_pos + flipped)/len(test_labels), 3)
+
         max_thresh.append(max_t)
-        max_accs.append(max_acc)
+        test_f1s.append(test_f1)
+        test_accs.append(test_acc)
+        test_precisions.append(test_prec)
+        test_recalls.append(test_recall)
+        test_recourse_proportions.append(test_recourse_proportion)
 
 
 
@@ -281,8 +307,12 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     thresholds_data['threshold_bounds'] = threshold_bounds
     thresholds_data['epsilons'] = epsilons
     thresholds_data['d'] = ds
-    thresholds_data['max_f1'] = max_f1s
-    thresholds_data['max_accs'] = max_accs
+    thresholds_data['test_f1s'] = test_f1s
+    thresholds_data['test_accs'] = test_accs
+    thresholds_data['test_precisions'] = test_precisions
+    thresholds_data['test_recalls'] = test_recalls
+    thresholds_data['test_recourse_proportions'] = test_recourse_proportions
+
 
     thresholds_data['actual_thresh'] = max_thresh
 
@@ -294,10 +324,8 @@ def compute_threshold_upperbounds(model, X_test, y_test, weight, delta_max, data
     thresholds_df.to_csv(file_name, index_label='index')
 
 
-def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
+def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir, do_print_individual_files = True, file_name = None):
     """
-    calculate the optimal delta using linear program
-
     :param model: pytorch model to evaluate
     :param X_test: X test data (e.g. adult_data['X_test'])
     :param y_test: y test data (e.g. adult_data['y_test'])
@@ -315,7 +343,8 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     if not os.path.exists(test_eval_dir):
         os.makedirs(test_eval_dir)
 
-    file_name = test_eval_dir + str(weight) + '_our_' + str(threshold) + '_test.txt'
+    if file_name == None:
+        file_name = test_eval_dir + str(weight) + '_our_' + str(threshold) + '_test.txt'
 
     model.eval()
 
@@ -345,8 +374,6 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
         f = open(file_name, "a")
         print("DELTA MAX: {}".format(delta_max), file=f)
         print("len(instances) evaluated on: {}\n\n".format(len(data_indices)), file=f)
-
-    loss_fn = torch.nn.BCELoss()
 
     negative_instances, flipped = 0, 0
     total_instances = len(labels)
