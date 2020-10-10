@@ -91,7 +91,7 @@ def get_candidates(model, text, max_candidates):
         if tmp != "a" and tmp != "n":
             continue
         for a in antonyms(word):
-            candidates[counter] = (TreebankWordDetokenizer().detokenize([a if x == word else x for x in words]))
+            candidates[counter] = (TreebankWordDetokenizer().detokenize([a.rstrip() if x == word else x for x in words]))
             counter += 1
             if counter >= max_candidates:
                 return list(filter(None.__ne__, candidates))
