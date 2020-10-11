@@ -207,9 +207,11 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             cand_text, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
             if cand_text == text:
                 num_no_cands += 1
-            batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
-                
-                
+
+            if pos_prob < 0.5:
+                batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
+            else:
+                batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, 0.0)
             if i % batch_size == 0:    
                 model.zero_grad() 
                 batch_loss.backward()
