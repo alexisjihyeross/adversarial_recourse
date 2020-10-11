@@ -842,3 +842,168 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
+
+def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, d, model_dir):
+    """
+    calculate the optimal delta using linear program
+
+    :param model: pytorch model to evaluate
+    :param X_test: X test data (e.g. adult_data['X_test'])
+    :param y_test: y test data (e.g. adult_data['y_test'])
+    :param weight: weight being evaluated (used to name file)
+    :param threshold: threshold to use in evaluation
+    :param delta_max: parameter defining maximum change in individual feature value
+    :actionable_indices: indices of actionable features
+    :model_dir: model (weight) specific directory within experiment directory
+
+    :returns: 
+    """
+
+    test_eval_dir = model_dir + "test_eval/"
+
+    if not os.path.exists(test_eval_dir):
+        os.makedirs(test_eval_dir)
+
+    file_name = test_eval_dir + str(weight) + '_our_threshold_bounds.csv'
+
+    model.eval()
+
+
+    X_val, y_val = dict_data['X_val'], dict_data['y_val']
+    data = X_val  
+    labels = y_val
+
+    torch_data = torch.from_numpy(data.values).float()
+    torch_labels = torch.from_numpy(labels.values)
+
+    probs = []
+
+    logger = logging.getLogger('alibi.explainers.counterfactual')
+    logging.basicConfig(level=logging.CRITICAL)
+
+    for i in range(len(torch_labels)):
+
+        sample = data.iloc[i].values.reshape(1,-1)
+        mins = sample[0].copy()
+        maxs = sample[0].copy()
+        for ai in actionable_indices:
+            mins[ai] = mins[ai] - delta_max
+            maxs[ai] = maxs[ai] + delta_max
+        mins = mins.reshape(1,-1)
+        maxs = maxs.reshape(1,-1)
+
+
+        tol = (1 - threshold)
+        tf.compat.v1.disable_eager_execution()
+        tf.keras.backend.clear_session()
+        explainer = CounterFactual(lambda x: pred_function(model, x), \
+                               shape=(1,) + data.iloc[0].values.shape, target_proba = 1.0, \
+                               target_class='other', tol = tol, feature_range = (mins, maxs), \
+                               lam_init = lam_init, max_lam_steps = max_lam_steps)
+        try:
+            recourse = explainer.explain(sample)
+            if recourse.cf != None:
+                action = (recourse.cf['X'][0]) - sample
+                if do_print:
+                    print("lambda: ", recourse.cf['lambda'])
+                    print('index: ', recourse.cf['index'])
+                    print("action: ", np.around(action, 2))
+                    print("sample: ", sample)
+                    print("counterfactual: ", recourse.cf['X'][0])
+                    print("counterfactual proba: ", recourse.cf['proba'])
+                    print("normal proba: ", pred_function(model, sample))
+                assert(action <= delta_max).all()
+
+            else:
+                num_no_recourses += 1
+                num_none_returned += 1
+        except UnboundLocalError as e:
+            num_no_recourses += 1
+            if do_print:
+                print(e)
+                print("no success")
+        except AssertionError as e:
+            print("assertion error")
+        num_neg_instances += 1
+
+        probs.append(recourse.cf['proba'])
+
+    probs = np.array(probs)
+
+    threshold_bounds = []
+    ds = []
+    test_f1s = []
+    test_accs = []
+    test_precisions = []
+    test_recalls = []
+    max_thresh = []
+    test_recourse_proportions = []
+
+    for epsilon in epsilons:
+        t = compute_t(probs, 1 - epsilon, d)
+        threshold_bounds.append(t)
+        ds.append(d)
+
+        max_f1 = 0
+        max_t = None
+        for t_cand in np.linspace(0, t, 10):
+
+            y_pred = [0.0 if a < t_cand else 1.0 for a in (model(torch_data).detach().numpy())]
+            y_true = ((torch_labels).detach().numpy())
+            y_prob_pred = model(torch_data).detach().numpy()
+        
+            f1 = round(f1_score(y_true, y_pred), 3)     
+
+            if f1 > max_f1:
+                max_f1 = f1
+                max_t = round(t_cand, 3)
+
+        test_torch_data = torch.from_numpy(dict_data['X_test'].values).float()
+        test_labels = torch.from_numpy(dict_data['y_test'].values).float()
+
+        flipped = 0
+        for i in range(len(test_labels)):
+            x = test_torch_data[i]              # data point
+            
+            if model(x).item() < max_t:
+                delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+                if (model(x + delta_opt).item()) >= max_t:
+                    flipped += 1
+
+        y_pred = [0.0 if a < max_t else 1.0 for a in (model(test_torch_data).detach().numpy())]
+        y_true = ((test_labels).detach().numpy())
+        num_pos = sum(y_pred)
+        test_f1 = round(f1_score(y_true, y_pred), 3)  
+        test_acc = round(np.sum(y_pred == y_true)/(y_true).shape[0], 3)
+        test_prec = round(precision_score(y_true, y_pred), 3)  
+        test_recall = round(recall_score(y_true, y_pred), 3)  
+        test_recourse_proportion = round((num_pos + flipped)/len(test_labels), 3)
+
+        max_thresh.append(max_t)
+        test_f1s.append(test_f1)
+        test_accs.append(test_acc)
+        test_precisions.append(test_prec)
+        test_recalls.append(test_recall)
+        test_recourse_proportions.append(test_recourse_proportion)
+
+
+
+    thresholds_data = {}
+    thresholds_data['threshold_bounds'] = threshold_bounds
+    thresholds_data['epsilons'] = epsilons
+    thresholds_data['d'] = ds
+    thresholds_data['test_f1s'] = test_f1s
+    thresholds_data['test_accs'] = test_accs
+    thresholds_data['test_precisions'] = test_precisions
+    thresholds_data['test_recalls'] = test_recalls
+    thresholds_data['test_recourse_proportions'] = test_recourse_proportions
+
+
+    thresholds_data['actual_thresh'] = max_thresh
+
+    thresholds_df = pd.DataFrame(data=thresholds_data)
+    thresholds_df['threshold_bounds'] = thresholds_df['threshold_bounds'].round(3)
+
+    print(threshold_bounds)
+
+    thresholds_df.to_csv(file_name, index_label='index')
