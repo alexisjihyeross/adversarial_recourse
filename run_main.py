@@ -44,7 +44,7 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
         threshold = eval_thresholds[0]
 
         for kernel_width in kernel_widths:
-            lime_berk_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
+            lime_linear_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
 
         # outputs results in
         compute_threshold_upperbounds(model, data, w, delta_max, actionable_indices, epsilons, d, weight_dir)

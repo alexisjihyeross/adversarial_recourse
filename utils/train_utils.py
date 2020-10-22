@@ -19,7 +19,6 @@ def calc_delta_opt(model, x, delta_max, actionable_indices):
     :actionable_indices: indices of actionable features
 
     :returns: torch tensor with optimal delta value
-        this optimal value always has either -/+ delta_max for each actionable index
     """
 
     loss_fn = torch.nn.BCELoss()
@@ -115,7 +114,7 @@ def write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, del
 def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
     t, val_flipped, best_epoch, num_negative, num_positive):
     """
-    writes stats for model at threshold
+    writes stats for model at threshold to two different files (with names train_file_name & best_model_stats_file_name)
 
     :param train_file_name: name of training log file
     :param best_model_stats_file_name: name of best model stats file
@@ -124,15 +123,16 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     :param X_val: val X data
     :param y_val: val y data
     :param t: threshold
-    :param val_flipped: number of val instances for which adding calculated optimal delta led to a flip in prediction
+    :param val_flipped: number of val instances for which adding calculated optimal delta led to a flip in prediction (i.e. recourse neg)
     :param best_epoch: Boolean for whether this is epoch with best val loss
     :param num_negative: number of negative val preds for this epoch
     :param num_positive: number of positive val preds for this epoch
 
-    :return: tuple (val_precision, val_recourse_proportion, val_flipped_proportion)
+    :return: tuple (val_precision, val_recourse_proportion, val_flipped_proportion, val_f1)
         val_precision: precision at threshold t
         val_recourse_proportion: portion of instances with recourse at threshold t
-        val_flipped_proportion: portion of flipped with recourse at threshold t
+        val_flipped_proportion: portion of neg instances with recourse at threshold t
+        val f1: f1 score at threshold t
     """
     
     # compute stats at this threshold
@@ -183,9 +183,33 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1
 
 def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_dir, \
-          num_epochs = 12, delta_max = 1.0, batch_size = 10, lr = 0.002, \
-          recourse_loss_weight=1, fixed_precisions = [0.5, 0.6, 0.7]):
-    
+          num_epochs = 12, delta_max = 0.75, batch_size = 10, lr = 0.002, \
+          recourse_loss_weight=1):
+    """
+    trains model and writes training stats to file ({}_model_training_info.txt)
+    also evaluates on validation data after each epoch for thresholds from [0.0, 1.0] in increments of 0.05 and: 
+        saves model with best val loss
+        writes val stats to val log files ({}_best_model_val_info.txt. {}_val_thresholds_info.csv)
+
+    :param model: model
+    :param X_train: train X data
+    :param y_train: train y data
+    :param X_val: val X data
+    :param y_val: val y data
+    :param actionable_indices: indices of actionable features
+    :param experiment_dir: directory where experiment is stored
+    :param num_epochs: number of epochs
+    :param delta_max: maximum amount a feature can be changed by in calculating recourse
+    :param batch_size: number of instances after which to make the gradient update
+    :param lr: learning rate
+    :param recourse_loss_weight: lambda value (weights the recourse/adversarial part of our training objective)
+
+    :return: tuple (val_precision, val_recourse_proportion, val_flipped_proportion, val_f1)
+        val_precision: precision at threshold t
+        val_recourse_proportion: portion of instances with recourse at threshold t
+        val_flipped_proportion: portion of neg instances with recourse at threshold t
+        val f1: f1 score at threshold t
+    """   
     
     weight_dir = experiment_dir + str(recourse_loss_weight) + '/'
 
@@ -293,23 +317,13 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
         # get metrics
         precisions, recalls, thresholds = metrics.precision_recall_curve(y_true, y_prob_pred, pos_label=1.0)
-        prec_thresholds = []
-        # print("thresholds: ", thresholds)
-        # print("precisions: ", precisions)
-
-        # get thresholds for desired precisions
-        for fp in fixed_precisions:
-            th = thresholds[(np.abs(precisions - fp)).argmin()]
-            rounded_th = round(th, 3)
-            prec_thresholds.append(rounded_th)
-
 
         # add custom thresholds
-        prec_thresholds.extend([0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0])
+        thresholds = ([0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0])
 
         # FOR VAL
-        flipped_epoch_by_threshold = [0 for a in prec_thresholds]
-        negative_epoch_by_threshold = [0 for a in prec_thresholds]     
+        flipped_epoch_by_threshold = [0 for a in thresholds]
+        negative_epoch_by_threshold = [0 for a in thresholds]     
         
         # iterate through validation data:
 
@@ -327,7 +341,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
 
             # for each threshold, keep track of negative predictions and flipped predictions
-            for t_idx, t in enumerate(prec_thresholds):
+            for t_idx, t in enumerate(thresholds):
                 if y_pred.item() < t:
                     negative_epoch_by_threshold[t_idx] += 1
                     if model(x + delta_opt).detach().numpy() >= t:
@@ -354,7 +368,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_
 
             write_best_val_model(best_model_stats_file_name, best_model_name, lr, n, delta_max, model)
 
-            best_thresholds = prec_thresholds
+            best_thresholds = thresholds
             
         else:
             best_epoch = False

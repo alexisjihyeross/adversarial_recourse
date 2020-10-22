@@ -16,28 +16,43 @@ from recourse.flipset import Flipset
 from lime import lime_tabular
 
 def load_torch_model(weight_dir, weight):
+    """
+    loads saved model in eval mode
+    :param weight_dir: directory where model is saved
+    :param weight: lambda value (weights the recourse/adversarial part of our training objective)
+
+
+    :returns: torch tensor with optimal delta value
+    """
     model_name = weight_dir + str(weight) + '_best_model.pt'
     model = torch.load(model_name)
     model.eval()
     return model
 
 def pred_function(model, np_x):
+    """
+    helper function to turn model prediction (single probability value) into predictions over two classes
+    """
     torch_x = torch.from_numpy(np_x).float()
     model_pred = model(torch_x).detach().numpy()
     probs = np.concatenate((model_pred, 1-model_pred), axis=1)
     return probs
 
-def print_test_results(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = True):
+def get_additional_metrics(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = True):
     """
-    prints test metrics (for wachter_evaluate and our_evaluate) in file file_name
+    gets metrics and prints (for wachter_evaluate and our_evaluate) in file file_name
 
     :param file_name: name of file within experiment_dir/model_dir/test_eval folder to write test metrics
     :param model: model to evaluate
-    :param threshold
-    :param weight
-    :param data
+    :param threshold: threshold to evaluate at
+    :param weight: lambda value (weights the recourse/adversarial part of our training objective)
+    :param data: features in dataframe form
+    :param labels: labels in dataframe form
+    :param precision: precision of the model on the data at threshold
+    :param do_print_individual_files: whether or not to print the file; otherwise, just returns the f1/recall/acc metrics
+    # TO DO: this is hacky, used to compute the metrics f1/recall/acc and to print
 
-    :returns: 
+    :returns: f1 score, recall, accuracy at threshold with model on data/labels
     """
 
     torch_data = torch.from_numpy(data.values).float()
@@ -70,11 +85,17 @@ def print_test_results(file_name, model, threshold, weight, data, labels, precis
     return f1, recall, acc
 
 def predict_as_numpy(model):
+    """
+    helper function that creates a wrapper around the model's predict function
+    """
     def new_predict_proba(data):
         return model(torch.from_numpy(data).float()).detach().numpy()
     return new_predict_proba   
 
 def get_lime_coefficients(lime_exp, categorical_features, num_features):
+    """
+    helper function to get LIME coefficients from a lime explanation object
+    """
     coefficients = [None] * num_features
     tuple_coefficients = lime_exp.as_list()
     for (feat, coef) in tuple_coefficients:
@@ -89,7 +110,26 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
     return coefficients
 
 
-def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width):
+def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width):
+    """
+    uses LIME linear approximations with the framework by Ustun et al., 2018 to compute recourses
+
+    :param model: model to evaluate
+    :param X_train: train data in dataframe form (used to initialize action set)
+    :param X_test: test data in dataframe form to evaluate on
+    :param y_test: test labels in dataframe form
+    :param weight: lambda value (weights the recourse/adversarial part of our training objective)
+    :param threshold: threshold to use for evaluation
+    :param data_indices: the indices of the test data to evaluate on (in case we want to only use a subset)
+    :param actionable_indices: indices of actionable features
+    :param categorical_features: categorical features in the dataset (affects LIME sampling)
+    :param model_dir: directory where the model is stored (and where to output test results)
+    :param kernel_width: parameter that determines the kernel_width of the lime explainer
+
+    :returns: flipped_proportion, precision, recourse_fraction, f1, recall, acc
+        flipped proportion: recourse neg
+        recourse_fraction: recourse all
+    """
 
     test_eval_dir = model_dir + "test_eval/lime_eval/"
 
@@ -106,7 +146,7 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
     torch_data = torch.from_numpy(data.values).float()
     torch_labels = torch.from_numpy(labels.values)
 
-    # this part is redundant with print_test_results
+    # this part is redundant with get_additional_metrics
     y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
     y_true = ((torch_labels).detach().numpy())
     y_prob_pred = model(torch_data).detach().numpy()
@@ -114,7 +154,7 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision)
+    f1, recall, acc = get_additional_metrics(file_name, model, threshold, weight, data, labels, precision)
 
     pred_fn = predict_as_numpy(model)
 
@@ -199,20 +239,20 @@ def lime_berk_evaluate(model, X_train, X_test, y_test, weight, threshold, data_i
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, d, model_dir):
+def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, alpha, model_dir):
     """
-    calculate the optimal delta using linear program
+    computes threshold upperbounds for PARE guarantees using our adversarial training method of calculating recourse
+    evalutes at thresholds in 10 equally spaced increments below that upperbound
+    prints results to a file {}_our_threshold_bounds.csv
 
     :param model: pytorch model to evaluate
-    :param X_test: X test data (e.g. adult_data['X_test'])
-    :param y_test: y test data (e.g. adult_data['y_test'])
-    :param weight: weight being evaluated (used to name file)
-    :param threshold: threshold to use in evaluation
+    :param dict_data: data in dictionary form (where each value is a dataframe)
+    :param weight: weight/lambda value being evaluated (used to create output file name)
     :param delta_max: parameter defining maximum change in individual feature value
-    :actionable_indices: indices of actionable features
+    :param actionable_indices: indices of actionable features
+    :param epsilons: epsilon values to evaluate at
+    :param alpha: the probability that the guarantee holds
     :model_dir: model (weight) specific directory within experiment directory
-
-    :returns: 
     """
 
     test_eval_dir = model_dir + "test_eval/"
@@ -252,7 +292,7 @@ def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionabl
     test_recourse_proportions = []
 
     for epsilon in epsilons:
-        t = compute_t(probs, 1 - epsilon, d)
+        t = compute_t(probs, 1 - epsilon, alpha)
         threshold_bounds.append(t)
         ds.append(d)
 
@@ -329,7 +369,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     :param weight: weight being evaluated (used to name file)
     :param threshold: threshold to use in evaluation
     :param delta_max: parameter defining maximum change in individual feature value
-    :actionable_indices: indices of actionable features
+    :param actionable_indices: indices of actionable features
     :model_dir: model (weight) specific directory within experiment directory
 
     :returns: 
@@ -357,7 +397,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     torch_data = torch.from_numpy(data.values).float()
     torch_labels = torch.from_numpy(labels.values)
 
-    # this part is redundant with print_test_results
+    # this part is redundant with get_additional_metrics
     y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
     y_true = ((torch_labels).detach().numpy())
     y_prob_pred = model(torch_data).detach().numpy()
@@ -365,7 +405,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = do_print_individual_files)
+    f1, recall, acc = get_additional_metrics(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = do_print_individual_files)
 
     if do_print_individual_files:
         f = open(file_name, "a")
@@ -562,7 +602,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     torch_data = torch.from_numpy(data.values).float()
     torch_labels = torch.from_numpy(labels.values)
 
-    # this part is redundant with print_test_results
+    # this part is redundant with get_additional_metrics
     y_pred = [0.0 if a < threshold else 1.0 for a in (model(torch_data).detach().numpy())]
     y_true = ((torch_labels).detach().numpy())
     y_prob_pred = model(torch_data).detach().numpy()
@@ -570,7 +610,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     pos_preds = np.sum(y_pred)
     neg_preds = len(y_pred) - pos_preds
 
-    f1, recall, acc = print_test_results(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = do_print_individual_files)
+    f1, recall, acc = get_additional_metrics(file_name, model, threshold, weight, data, labels, precision, do_print_individual_files = do_print_individual_files)
 
     if do_print_individual_files:
         f = open(file_name, "a")
@@ -671,8 +711,6 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
     
     lr = 0.002 # changed this for compas training
-    fixed_precisions = [0.4, 0.5, 0.6, 0.7]
-    fixed_precisions = []
 
     for w in weights:
         weight_dir = experiment_dir + str(w) + "/"
@@ -689,8 +727,7 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
             # train the model
             train(model, torch_X_train, torch_y_train, \
                  torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
-                  recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr, \
-                  fixed_precisions = fixed_precisions)
+                  recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr)
             print("DONE TRAINING")
         
         else:
@@ -759,8 +796,6 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         idx = (np.abs(precisions - prec_target)).argmin()
         eval_thresholds = [all_thresholds[idx]]
         print("EVAL THRESHOLDS: ", eval_thresholds)
-
-#        eval_thresholds = thresholds
 
     # lists in which to store results for diff thresholds
     wachter_thresholds, wachter_precisions, wachter_flipped_proportions, wachter_recourse_proportions, wachter_f1s, wachter_recalls, wachter_accs = [], [], [], [], [], [], []
@@ -838,20 +873,20 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
 
-def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, d, model_dir):
+def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, alpha, model_dir):
     """
-    calculate the optimal delta using linear program
+    computes threshold upperbounds for PARE guarantees using the gradient descent approximation method of calculating recourse
+    evalutes at thresholds in 10 equally spaced increments below that upperbound
+    prints results to a file {}_our_threshold_bounds.csv
 
     :param model: pytorch model to evaluate
-    :param X_test: X test data (e.g. adult_data['X_test'])
-    :param y_test: y test data (e.g. adult_data['y_test'])
-    :param weight: weight being evaluated (used to name file)
-    :param threshold: threshold to use in evaluation
+    :param dict_data: data in dictionary form (where each value is a dataframe)
+    :param weight: weight/lambda value being evaluated (used to create output file name)
     :param delta_max: parameter defining maximum change in individual feature value
-    :actionable_indices: indices of actionable features
+    :param actionable_indices: indices of actionable features
+    :param epsilons: epsilon values to evaluate at
+    :param alpha: the probability that the guarantee holds
     :model_dir: model (weight) specific directory within experiment directory
-
-    :returns: 
     """
 
     test_eval_dir = model_dir + "test_eval/"
@@ -935,7 +970,7 @@ def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, a
     test_recourse_proportions = []
 
     for epsilon in epsilons:
-        t = compute_t(probs, 1 - epsilon, d)
+        t = compute_t(probs, 1 - epsilon, alpha)
         threshold_bounds.append(t)
         ds.append(d)
 
