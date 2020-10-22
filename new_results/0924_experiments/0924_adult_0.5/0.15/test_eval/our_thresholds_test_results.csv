@@ -1,2 +1,0 @@
-index,thresholds,f1s,accuracies,precisions,recalls,flipped_proportion,recourse_proportion
-0,0.7,0.697,0.84,0.652,0.748,0.025,0.3

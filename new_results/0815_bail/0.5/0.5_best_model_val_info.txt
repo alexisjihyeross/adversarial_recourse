@@ -1,4 +1,0 @@
-lr: 0.002
-num epochs: 5
-delta max: 0.75
-

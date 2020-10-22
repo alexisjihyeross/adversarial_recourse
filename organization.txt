@@ -1,5 +1,0 @@
-train produces separate folders for each model in an experiment_dir
-in these separate folders, the training log, best model info, and all eval results will be stored (including wachter files)
-ex:
-	experiment_dir/0.0/
-	experiment_dir/0.0/
