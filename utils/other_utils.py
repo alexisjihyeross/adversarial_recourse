@@ -699,7 +699,10 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
 def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
-    # 
+    """
+    runs the main experiment
+    trains model & calls function run_evaluate (which runs recourse/performance evaluation on test data using both the adversarial training and gradient descent algorithms for computing recourse)
+    """
 
     lr = 0.002 # changed this for compas training
 

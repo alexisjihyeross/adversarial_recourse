@@ -22,9 +22,13 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
     write_data(data, experiment_dir)
     # data = read_data(experiment_dir)
 
-    # runs the main experiments (trains the model, evaluates recourse/performance metrics using the gradient descent and adversarial training algorithms for computing recourse)
+    # ------- MAIN EXPERIMENT -------
+    # (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
     run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = True)
 
+
+
+    # ------- FURTHER EXPERIMENTS (minority disparities, LIME + linear evaluation, theoretical guarantees) ------- 
     data_indices = range(0, 500)
 
     for w in weights:
@@ -32,11 +36,10 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
         weight_dir = experiment_dir + str(w) + "/"
         model = load_torch_model(weight_dir, w)    
 
-        # Runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function
+        # MINORITY DISPARITIES (runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function)
         run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
 
-        """ LIME EVALUATION """
-        # only evaluate at the threshold that maximizes f1 score on val data
+        # LIME EVALUATION (only evaluate at the threshold that maximizes f1 score on val data)
         threshold_df = get_threshold_info(weight_dir, w)
         thresholds = list(threshold_df['thresholds'])
         f1s = threshold_df['f1s'] 
@@ -46,10 +49,11 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
         for kernel_width in kernel_widths:
             lime_linear_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
 
-        # outputs results in
+        # THEORETICAL PARE GUARANTEES (computes metrics at thresholds satisfying theoretical upperbound derived with PARE guarantees)
         compute_threshold_upperbounds(model, data, w, delta_max, actionable_indices, epsilons, d, weight_dir)
 
 
+# EXAMPLE RUN
 if __name__ == '__main__':
     delta_max = 0.75
     data = "compas" # one of ["adult", "compas", "bail"]
