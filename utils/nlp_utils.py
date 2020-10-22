@@ -22,12 +22,13 @@ import pandas as pd
 import time
 
 def get_threshold_info(model_dir, weight):
-    # this is based on the value of this name in the train function
+    # helper function that reads in {}_val_thresholds_info.csv file output during training
     best_model_thresholds_file_name = model_dir + str(weight) + '_val_thresholds_info.csv'
     threshold_df = pd.read_csv(best_model_thresholds_file_name, dtype=np.float64, index_col = 'index')
     return threshold_df
 
-def load_nlp_model(device, model_name = 'bert-base-uncased'):
+def load_pretrained_model(device, model_name = 'bert-base-uncased'):
+    # helper function that loads the pretrained BERT models from the transformers library
     print("loading model...")
     model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
     model.to(device)
@@ -39,12 +40,15 @@ def load_nlp_model(device, model_name = 'bert-base-uncased'):
     return model, tokenizer
 
 def load_trained_model(weight_dir, weight):
+    # helper function that loads model saved in weight_dir 
     model_name = weight_dir + str(weight) + "_best_model.pt"
     model = torch.load(model_name)
     model.eval()
     return model
 
 def get_sst_data(file_path):
+    # helper function that loads SST data from file_path
+
     with open(file_path, "r") as data_file:
         lines = list(data_file.readlines())
         texts = []
@@ -67,6 +71,8 @@ def get_sst_data(file_path):
     return texts, labels
 
 def antonyms(term):
+    # helper function that retrieves antonyms for a given term; called in get_candidates
+    # TODO: the css class may have changed since this code was run (the thesaurus website seems to change this class)
     max_tries = 100
     counter = 0
     while counter < max_tries:
@@ -80,6 +86,7 @@ def antonyms(term):
     return None
 
 def get_candidates(model, text, max_candidates):
+    # helper function that retrieves perturbed candidates; called in get_delta_opt
     words = word_tokenize(text)
     candidates = [None] * max_candidates
     counter = 0
@@ -98,6 +105,7 @@ def get_candidates(model, text, max_candidates):
     return list(filter(None.__ne__, candidates))
 
 def get_delta_opt(model, tokenizer, device, text, max_candidates):
+    # function that calculates the optimal perturbation/recourse
     cands = get_candidates(model, text, max_candidates)
     max_prob = 0
     found_cand = False
@@ -126,20 +134,35 @@ def get_delta_opt(model, tokenizer, device, text, max_candidates):
     return max_cand, max_logits, max_prob
 
 def get_pred(model, tokenizer, device, input_ids, labels):
+    # helper function that converts logits to probabilities
     outputs = model(input_ids)
     logits = outputs[0]
     pos_prob = torch.nn.Softmax(dim=-1)(logits)[:, -1]
     return logits, labels, pos_prob
 
 def get_tensors(device, tokenizer, text, label):
+    # helper function that converts text/label into tensors
     encoding = tokenizer(text, return_tensors='pt', padding=True, truncation=True)['input_ids']
     input_ids = encoding.to(device)
     labels = torch.LongTensor([label]).to(device)
     return input_ids, labels
 
-def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_weight, max_candidates = 10):
+def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, weight, max_candidates = 10):
+    """
+    trains the model and evaluates it on validation data after each epoch
+    saves the model with the best validation loss
 
-    training_file_name = weight_dir + str(recourse_loss_weight) + "_model_training_info.txt"
+    :param model: model to train
+    :param tokenizer: tokenizer of BERT model
+    :param weight_dir: directory with model trained with lambda value
+    :param thresholds_to_eval: thresholds to evaluate at
+    :param weight: lambda value
+    :param max candidates: maximum number of perturbations to consider
+
+    """
+
+
+    training_file_name = weight_dir + str(weight) + "_model_training_info.txt"
 
     training_file = open(training_file_name, "w")
 
@@ -153,8 +176,6 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
 
 
     dev_texts, dev_labels = get_sst_data('data/nlp_data/dev.txt')
-    #dev_texts = dev_texts[0:50]
-    #dev_labels = dev_labels[0:50]
 
     batch_size = 1 
 
@@ -180,10 +201,10 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     scheduler = get_linear_schedule_with_warmup(optim, num_warmup_steps, num_train_steps)
     loss_fn = torch.nn.CrossEntropyLoss()
 
-    def combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight):
+    def combined_loss(model, device, logits, labels, delta_logits, loss_fn, weight):
         normal_loss = loss_fn(logits, labels)
         recourse_loss = loss_fn(delta_logits, torch.LongTensor([1.0]).to(device))
-        return recourse_loss * recourse_loss_weight + normal_loss
+        return recourse_loss * weight + normal_loss
 
     best_val_loss = 100000000
 
@@ -208,7 +229,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
                 num_no_cands += 1
 
             if pos_prob < 0.5:
-                batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight)
+                batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, weight)
             else:
                 batch_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, 0.0)
             if i % batch_size == 0:    
@@ -260,7 +281,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             input_ids, labels = get_tensors(device, tokenizer, text, label)
             logits, labels, pos_prob = get_pred(model, tokenizer, device, input_ids, labels)            
             _, delta_logits, delta_prob = get_delta_opt(model, tokenizer, device, text, max_candidates)
-            epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, recourse_loss_weight).item()
+            epoch_val_loss += combined_loss(model, device, logits, labels, delta_logits, loss_fn, weight).item()
             
             del input_ids
             del labels
@@ -276,7 +297,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
                         flipped_by_thresh[t] += 1
                         
         if epoch_val_loss < best_val_loss:
-            best_model_name = weight_dir + str(recourse_loss_weight) + '_best_model.pt'
+            best_model_name = weight_dir + str(weight) + '_best_model.pt'
             torch.save(model, best_model_name)
             best_epoch = True
 
@@ -288,7 +309,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             evaluate(pos_probs, dev_labels, thresholds_to_eval, training_file, negative_by_thresh, flipped_by_thresh, "val")
 
         if best_epoch:
-            best_model_info_file_name = weight_dir + str(recourse_loss_weight) + "_best_model_val_info.txt"
+            best_model_info_file_name = weight_dir + str(weight) + "_best_model_val_info.txt"
             best_model_info_file = open(best_model_info_file_name, "w")
             print("epoch: ", epoch, file = best_model_info_file)
             best_model_info_file.close()
@@ -306,7 +327,7 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
             thresholds_data['recourse_proportion'] = recourse_proportion_by_thresh
             thresholds_df = pd.DataFrame(data=thresholds_data)
             
-            best_model_thresholds_file_name = weight_dir + str(recourse_loss_weight) + '_val_thresholds_info.csv'
+            best_model_thresholds_file_name = weight_dir + str(weight) + '_val_thresholds_info.csv'
             thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
 
         training_file.flush()
@@ -315,8 +336,8 @@ def train_nlp(model, tokenizer, weight_dir, thresholds_to_eval, recourse_loss_we
     training_file.close()
 
 def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_thresh, flipped_by_thresh, data_stub):
+    # helper evaluate function called in run_nlp_evaluate that computes values for different metrics based on predictions and prints them
 
-    # if best epoch, eval
     np_probs = np.array(pos_probs)
     np_labels = np.array(labels)
 
@@ -365,14 +386,26 @@ def evaluate(pos_probs, labels, thresholds_to_eval, training_file, negative_by_t
 
 
 
-def run_nlp_evaluate(weight_dir, recourse_loss_weight, tokenizer, device, max_candidates = 10):
-    model = load_trained_model(weight_dir, recourse_loss_weight)
+def run_nlp_evaluate(weight_dir, weight, tokenizer, device, max_candidates = 10):
+    """
+    loads the model in weight_dir and evaluates it for recourse and performance metrics on the test set 
+    outputs a csv file {}_test_thresholds_info.csv with results
+
+    :param weight_dir: directory with model trained with lambda value
+    :param weight: lambda value
+    :param tokenizer: tokenizer of BERT model
+    :param device: device
+    :param max candidates: maximum number of perturbations to consider
+
+    """
+
+    model = load_trained_model(weight_dir, weight)
     model = model.to(device)
     test_texts, test_labels = get_sst_data('data/nlp_data/test.txt')
 
     pos_probs = []
 
-    thresholds_info = get_threshold_info(weight_dir, recourse_loss_weight)
+    thresholds_info = get_threshold_info(weight_dir, weight)
 
     thresholds = list(thresholds_info['thresholds'])
 
@@ -415,7 +448,7 @@ def run_nlp_evaluate(weight_dir, recourse_loss_weight, tokenizer, device, max_ca
     thresholds_data['recourse_proportion'] = recourse_proportion_by_thresh
     thresholds_df = pd.DataFrame(data=thresholds_data)
     
-    best_model_thresholds_file_name = weight_dir + str(recourse_loss_weight) + '_test_thresholds_info.csv'
+    best_model_thresholds_file_name = weight_dir + str(weight) + '_test_thresholds_info.csv'
     thresholds_df.to_csv(best_model_thresholds_file_name, index_label='index')
 
 
