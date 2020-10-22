@@ -2,6 +2,8 @@ import importlib
 import os
 import torch
 from utils.nlp_utils import *
+import nltk
+nltk.download('wordnet')
 
 recourse_loss_weight = 0.05
 weight_dir = 'results/nlp/' + str(recourse_loss_weight) + "/"
