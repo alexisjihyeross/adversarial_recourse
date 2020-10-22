@@ -732,7 +732,7 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
         print("DONE EVALUATING FOR WEIGHT: ", w)
 
 def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
-    thresholds = None, only_eval_at_max_f1 = False, lam_init = 0.001, max_lam_steps = 10, data_indices = range(0, 500)):
+    prec_targets = [0.65], lam_init = 0.001, max_lam_steps = 10, data_indices = range(0, 500)):
     """
     evaluates the model for recourse/performance metrics on white and minority subsets of data
         uses both the gradient descent and adversarial training algorithms for computing recourse
@@ -745,8 +745,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     :param actionable_indices: indices of actionable features
     :param experiment_dir: directory of experiment
     :param white_feature_name: feature name indicating whether a person is white or not
-    :param thresholds: thresholds to evaluate at
-    :param only_eval_at_max_f1: if True, only evaluate at threshold giving max f1 value from thresholds file output during validation
+    :param prec_targets: a list of precision targets (we use this to choose thresholds for evaluation)
     :param lam_init: lam_init parameter passed to the gradient descent algorithm
     :param max_lam_steps: max_lam_steps parameter passed to the gradient descent algorithm
     :param data_indices: indices of data subset to evaluate on
@@ -768,37 +767,6 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
     white_labels = labels[labels.index.isin(white_data.index)]
     minority_labels = labels[labels.index.isin(minority_data.index)]
 
-    # only_eval_at_max_f1 can only be true if we are evaluating at thresholds from validation evaluation
-    assert not (thresholds != None and only_eval_at_max_f1)
-
-    # thresholds arg not supplied, read in thresholds from validation evaluation during training and use those
-    if thresholds == None:
-        threshold_df = get_threshold_info(model_dir, w)
-        thresholds = list(threshold_df['thresholds'])
-
-    metrics = []
-    metric = "precisions"
-    if only_eval_at_max_f1:
-        metrics = threshold_df[metric] 
-        # only evaluate at the threshold that maximizes f1 score on val data
-        eval_thresholds = [thresholds[np.argmax(metrics)]]
-
-    # eval at fixed precision
-    else:
-        prec_target = 0.65
-        val_data = dict_data['X_val']
-        val_labels = dict_data['y_val']
-        torch_data = torch.from_numpy(val_data.values).float()
-        torch_labels = torch.from_numpy(val_labels.values).float()
-        y_prob = model(torch_data).detach().numpy()
-        y_true = torch_labels.detach().numpy()
-
-        precisions, recall, all_thresholds = precision_recall_curve(y_true, y_prob)
-        idx = (np.abs(precisions - prec_target)).argmin()
-        eval_thresholds = [all_thresholds[idx]]
-        print("EVAL THRESHOLDS: ", eval_thresholds)
-
-    print("THRESHOLDS: ", eval_thresholds)
 
     white_tuple = (white_data, white_labels, model_dir + "test_eval/" + minority_dir + "WHITE_wachter_thresholds_test_results.csv", model_dir + "test_eval/" + minority_dir + "WHITE_our_thresholds_test_results.csv")
     minority_tuple = (minority_data, minority_labels, model_dir + "test_eval/" + minority_dir + "MINORITY_wachter_thresholds_test_results.csv", model_dir + "test_eval/" + minority_dir + "MINORITY_our_thresholds_test_results.csv")
@@ -809,9 +777,18 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         our_thresholds, our_precisions, our_flipped_proportions, our_recourse_proportions, our_f1s, our_recalls, our_accs = [], [], [], [], [], [], []
 
 
-        for threshold in eval_thresholds:
+        for prec_target in prec_targets:
+            val_data = dict_data['X_val']
+            val_labels = dict_data['y_val']
+            torch_data = torch.from_numpy(val_data.values).float()
+            torch_labels = torch.from_numpy(val_labels.values).float()
+            y_prob = model(torch_data).detach().numpy()
+            y_true = torch_labels.detach().numpy()
+
+            precisions, recall, all_thresholds = precision_recall_curve(y_true, y_prob)
+            idx = (np.abs(precisions - prec_target)).argmin()
+            threshold = all_thresholds[idx]
             threshold = round(threshold, 3)
-            print("THR: ", threshold)
 
             our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, white_data, white_labels, w, threshold, delta_max, None, actionable_indices, model_dir, do_print_individual_files = False)
             our_thresholds.append(threshold)
@@ -833,7 +810,6 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
 
         write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
         write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
-
 
 
 def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, alpha, model_dir):

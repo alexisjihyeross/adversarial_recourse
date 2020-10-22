@@ -53,7 +53,7 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
 if __name__ == '__main__':
     delta_max = 0.75
     data = "compas" # one of ["adult", "compas", "bail"]
-    weights = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] # lambda values
+    weights = [0.0] # lambda values
     kernel_widths = [0.5]
     epsilons = [0.95]
     d = 0.95
