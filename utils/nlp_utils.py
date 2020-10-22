@@ -68,7 +68,7 @@ def get_sst_data(file_path):
                 sentiment = 1.0
             texts.append(text)
             labels.append(sentiment)
-    return texts, labels
+    return texts[0:10], labels[0:10]
 
 def antonyms(term):
     # helper function that retrieves antonyms for a given term; called in get_candidates
