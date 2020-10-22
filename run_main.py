@@ -22,8 +22,8 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
     write_data(data, experiment_dir)
     # data = read_data(experiment_dir)
 
+    # runs the main experiments (trains the model, evaluates recourse/performance metrics using the gradient descent and adversarial training algorithms for computing recourse)
     run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = True)
-
 
     data_indices = range(0, 500)
 

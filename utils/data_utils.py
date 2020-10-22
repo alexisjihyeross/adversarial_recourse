@@ -10,7 +10,7 @@ def get_data_file(data_name):
 
 def process_compas_data():
     """
-    Processes normalized adult dataset in DATA_DIR
+    processes normalized adult dataset in DATA_DIR
 
     :returns: tuple (adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names)
         adult_categorical_features: indices of categorical features in the processed dataset
@@ -56,7 +56,7 @@ def process_compas_data():
 
 def process_adult_data():
     """
-    Processes normalized adult dataset in DATA_DIR
+    processes normalized adult dataset in DATA_DIR
 
     :returns: tuple (adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names)
         adult_categorical_features: indices of categorical features in the processed dataset
@@ -103,7 +103,7 @@ def process_adult_data():
 
 def process_bail_data():
     """
-    Processes normalized bail dataset in DATA_DIR (only from bail_train)
+    processes normalized bail dataset in DATA_DIR (only from bail_train)
 
     :returns: tuple (bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names)
         bail_categorical_features: indices of categorical features in the processed dataset
@@ -160,7 +160,7 @@ def process_bail_data():
 
 def get_data(X, y, val_size = 0.2): 
     """
-    Splits processed data into train/val/test datasets
+    splits processed data into train/val/test datasets
 
     :param X: features
     :param y: labels
@@ -209,7 +209,7 @@ def write_data(data, output_dir):
 
 def read_data(output_dir):
     """
-    Reads data dataframes to csv
+    reads data dataframes to csv
 
     :param output_dir: output directory of experiment. will look inside a subdirectory 'data'
     :returns: dictionary with data if files exist; None otherwise

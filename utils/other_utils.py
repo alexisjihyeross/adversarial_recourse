@@ -555,7 +555,6 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_feat
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
 def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
-    
     """
     evaluates the model for recourse/performance metrics using the gradient descent algorithm for computing recourse
 
