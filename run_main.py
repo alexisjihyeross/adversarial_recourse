@@ -2,8 +2,15 @@ from utils.data_utils import *
 from utils.train_utils import *
 from utils.other_utils import *
 
-def main(data, delta_max, weights, kernel_widths, epsilons, d):
+def main(data, delta_max, weights):
+    """
+    runs the main experiments in the paper
 
+    :param data: string in ["adult", "compas", "bail"]
+    :param delta_max: parameter defining maximum change in individual feature value
+    :weights: lambda values determining the weight on our adversarial training objective
+
+    """
     assert data in ["adult", "compas", "bail"]
 
     if data == "adult":
@@ -20,7 +27,7 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
 
     data = get_data(X, y)
     write_data(data, experiment_dir)
-    # data = read_data(experiment_dir)
+    # data = read_data(experiment_dir) # read data if we've already written data
 
     # ------- MAIN EXPERIMENT -------
     # (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
@@ -39,18 +46,20 @@ def main(data, delta_max, weights, kernel_widths, epsilons, d):
         # MINORITY DISPARITIES (runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function)
         run_minority_evaluate(model, data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
 
-        # LIME EVALUATION (only evaluate at the threshold that maximizes f1 score on val data)
+        # LIME LINEAR APPROXIMATION (only evaluate at the threshold that maximizes f1 score on val data)
         threshold_df = get_threshold_info(weight_dir, w)
         thresholds = list(threshold_df['thresholds'])
         f1s = threshold_df['f1s'] 
         eval_thresholds = [thresholds[np.argmax(f1s)]]
         threshold = eval_thresholds[0]
 
-        for kernel_width in kernel_widths:
-            lime_linear_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir, kernel_width)
+        lime_linear_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, categorical_features, weight_dir)
 
         # THEORETICAL PARE GUARANTEES (computes metrics at thresholds satisfying theoretical upperbound derived with PARE guarantees)
-        compute_threshold_upperbounds(model, data, w, delta_max, actionable_indices, epsilons, d, weight_dir)
+
+        epsilons = [0.95] # parameter for theory experiment
+        alpha = 0.95 # parameter for theory experiment
+        compute_threshold_upperbounds(model, data, w, delta_max, actionable_indices, epsilons, alpha, weight_dir)
 
 
 # EXAMPLE RUN
@@ -58,7 +67,5 @@ if __name__ == '__main__':
     delta_max = 0.75
     data = "compas" # one of ["adult", "compas", "bail"]
     weights = [0.0] # lambda values
-    kernel_widths = [0.5]
-    epsilons = [0.95]
-    d = 0.95
-    main(data, delta_max, weights, kernel_widths, epsilons, d)
+
+    main(data, delta_max, weights)

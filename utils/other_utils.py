@@ -106,7 +106,7 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
     return coefficients
 
 
-def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width):
+def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width = 0.5):
     """
     uses LIME linear approximations with the framework by Ustun et al., 2018 to compute recourses
 
@@ -228,8 +228,8 @@ def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data
     
     f = open(file_name, "a")
     print("num none returned (errors): {}/{}, {}".format(num_errors, num_neg_instances, none_returned_proportion), file=f)
-    print("flipped: {}/{}, {}".format((flipped), num_neg_instances, flipped_proportion), file=f)
-    print("proportion with recourse: {}".format(recourse_fraction), file=f)
+    print("recourse neg proportion: {}/{}, {}".format((flipped), num_neg_instances, flipped_proportion), file=f)
+    print("recourse all proportion: {}".format(recourse_fraction), file=f)
     print("--------\n\n", file=f) 
     f.close()
 
@@ -290,7 +290,7 @@ def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionabl
     for epsilon in epsilons:
         t = compute_t(probs, 1 - epsilon, alpha)
         threshold_bounds.append(t)
-        ds.append(d)
+        ds.append(alpha)
 
         max_f1 = 0
         max_t = None
@@ -433,9 +433,9 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
     if do_print_individual_files:
         f.write("\nlen(test): {}".format(len(labels)))
         if negative_instances != 0:
-            f.write("\nflipped/negative: {}, {}/{}".format(flipped_proportion, flipped, negative_instances))
+            f.write("\nflipped/negative (i.e. recourse neg): {}, {}/{}".format(flipped_proportion, flipped, negative_instances))
         else:
-            f.write("\nflipped/negative: {}, {}/{}".format('NA', flipped, negative_instances))
+            f.write("\nflipped/negative (i.e. recourse neg): {}, {}/{}".format('NA', flipped, negative_instances))
         f.write("\nportion of all instances with recourse: {} (includes pos preds)".format(recourse_fraction))
         f.write('\n\nBASELINE STATS: ')
         maj_label = 0.0
@@ -691,8 +691,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
     if do_print_individual_files:
         f = open(file_name, "a")
         print("num none returned: {}/{}, {}".format(num_none_returned, num_neg_instances, none_returned_proportion), file=f)
-        print("flipped: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
-        print("proportion with recourse: {}".format(recourse_fraction), file=f)
+        print("recourse neg proportion: {}/{}, {}".format((num_neg_instances - num_no_recourses), num_neg_instances, flipped_proportion), file=f)
+        print("recourse all proportion: {}".format(recourse_fraction), file=f)
         print("--------\n\n", file=f) 
         f.close()
 
