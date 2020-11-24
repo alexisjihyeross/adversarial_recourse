@@ -1,0 +1,2 @@
+index,threshold_bounds,epsilons,d,test_f1s,test_accs,test_precisions,test_recalls,test_recourse_proportions,actual_thresh
+0,0.177,0.95,0.95,0.691,0.528,0.528,1.0,1.0,0.0
