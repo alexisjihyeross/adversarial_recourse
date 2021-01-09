@@ -14,13 +14,13 @@ def main(data, delta_max, weights):
     assert data in ["adult", "compas", "bail"]
 
     if data == "adult":
-        X, y, actionable_indices, categorical_features, _ = process_adult_data()
+        X, y, actionable_indices, increasing_actionable_indices, categorical_features, _ = process_adult_data()
         white_feature_name = "isWhite"
     elif data == "compas":
-        X, y, actionable_indices, categorical_features, _ = process_compas_data()
+        X, y, actionable_indices, increasing_actionable_indices, categorical_features, _ = process_compas_data()
         white_feature_name = "isCaucasian"
     elif data == "bail":
-        X, y, actionable_indices, categorical_features, _ = process_bail_data()
+        X, y, actionable_indices, increasing_actionable_indices, categorical_features, _ = process_bail_data()
         white_feature_name = "WHITE"
 
     experiment_dir = 'results/' + data + '_' + str(delta_max) + '/'
