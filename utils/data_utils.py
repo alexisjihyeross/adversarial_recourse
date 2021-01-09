@@ -27,7 +27,7 @@ def process_compas_data():
                               (compas_df['score_text'] != "NA")]
 
     compas_df['length_of_stay'] = (pd.to_datetime(compas_df['c_jail_out']) - pd.to_datetime(compas_df['c_jail_in'])).dt.days
-    compas_X = compas_df[['age', 'c_charge_degree', 'race', 'sex', 'priors_count', 'length_of_stay']]
+    compas_X = compas_df[['age', 'c_charge_degree', 'race', 'sex', 'priors_count', 'length_of_stay', 'days_b_screening_arrest']]
 
 
     compas_X['isMale'] = compas_X.apply(lambda row: 1 if 'Male' in row['sex'] else 0, axis=1)
@@ -50,8 +50,20 @@ def process_compas_data():
             compas_X[col] = (compas_X[col] - compas_X[col].mean(axis=0)) / compas_X[col].std(axis=0)
 
 
-    compas_actionable_indices = [0, 1,]
-    return compas_X, compas_y, compas_actionable_indices, compas_categorical_features, compas_categorical_names
+    compas_actionable_features = ["age"]
+    compas_actionable_indices = [idx for idx, col in compas_X.columns if col in compas_actionable_features]
+    assert len(compas_actionable_features) == len(compas_actionable_indices)
+
+    print("compas actionable features: ", compas_actionable_features)
+    print("compas actionable indices: ", compas_actionable_indices)
+
+    compas_increasing_actionable_features = ["age"]
+    compas_increasing_actionable_indices = [idx for idx, col in compas_X.columns if col in compas_increasing_actionable_features]
+    
+    print("compas increasing actionable features: ", compas_increasing_actionable_features)
+    print("compas increasing actionable indices: ", compas_increasing_actionable_indices)
+
+    return compas_X, compas_y, compas_actionable_indices, compas_increasing_actionable_indices, compas_categorical_features, compas_categorical_names
 
 
 def process_adult_data():
@@ -97,8 +109,22 @@ def process_adult_data():
             adult_X[col] = (adult_X[col] - adult_X[col].mean(axis=0)) / adult_X[col].std(axis=0)
 
 
-    adult_actionable_indices = [0, 1, 4]
-    return adult_X, adult_y, adult_actionable_indices, adult_categorical_features, adult_categorical_names
+    adult_actionable_features = ["age", "education-num", "hours-per-week"]
+    adult_actionable_indices = [idx for idx, col in adult_X.columns if col in adult_actionable_features]
+
+    assert len(adult_actionable_indices) == len(adult_actionable_features)
+
+    print("adult actionable features: ", adult_actionable_features)
+    print("adult actionable indices: ", adult_actionable_indices)
+    # adult_actionable_indices = [0, 1, 4]
+
+    adult_increasing_actionable_features = ["age, education-num"]
+    adult_increasing_actionable_indices = [idx for idx, col in compas_X.columns if col in adult_increasing_actionable_features]
+    
+    print("adult increasing actionable features: ", adult_increasing_actionable_features)
+    print("adult increasing actionable indices: ", adult_increasing_actionable_indices)
+
+    return adult_X, adult_y, adult_actionable_indices, adult_increasing_actionable_indices, adult_categorical_features, adult_categorical_names
 
 
 def process_bail_data():
@@ -153,10 +179,23 @@ def process_bail_data():
         if col not in bail_categorical_names:
             bail_X[col] = (bail_X[col] - bail_X[col].mean(axis=0)) / bail_X[col].std(axis=0)
 
+    bail_actionable_features = ["SCHOOL", "RULE"]
+    bail_actionable_indices = [idx for idx, col in bail_X.columns if col in bail_actionable_features]
 
-    bail_actionable_indices = [11, 12, 15]
+    assert len(bail_actionable_indices) == len(bail_actionable_features)
 
-    return bail_X, bail_y, bail_actionable_indices, bail_categorical_features, bail_categorical_names
+    print("bail actionable features: ", bail_actionable_features)
+    print("bail actionable indices: ", bail_actionable_indices)
+
+    # bail_actionable_indices = [11, 12, 15]
+
+    bail_increasing_actionable_features = ["SCHOOL"]
+    bail_increasing_actionable_indices = [idx for idx, col in compas_X.columns if col in bail_increasing_actionable_features]
+    
+    print("bail increasing actionable features: ", bail_increasing_actionable_features)
+    print("bail increasing actionable indices: ", bail_increasing_actionable_indices)
+
+    return bail_X, bail_y, bail_actionable_indices, bail_increasing_actionable_indices, bail_categorical_features, bail_categorical_names
 
 def get_data(X, y, val_size = 0.2): 
     """

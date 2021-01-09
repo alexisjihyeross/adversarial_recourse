@@ -106,7 +106,7 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
     return coefficients
 
 
-def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, categorical_features, model_dir, kernel_width = 0.5):
+def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, increasing_actionable_indices, categorical_features, model_dir, kernel_width = 0.5):
     """
     uses LIME linear approximations with the framework by Ustun et al., 2018 to compute recourses
 
@@ -235,7 +235,7 @@ def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, alpha, model_dir):
+def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, increasing_actionable_indices, epsilons, alpha, model_dir):
     """
     computes threshold upperbounds for PARE guarantees using our adversarial training method of calculating recourse
     evalutes at thresholds in 10 equally spaced increments below that upperbound
@@ -273,7 +273,7 @@ def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionabl
     for i in range(len(torch_labels)):
         x = torch_data[i]              # data point
         
-        delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+        delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
         probs.append(model(x + delta_opt).item())
 
     probs = np.array(probs)
@@ -314,7 +314,7 @@ def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionabl
             x = test_torch_data[i]              # data point
             
             if model(x).item() < max_t:
-                delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+                delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
                 if (model(x + delta_opt).item()) >= max_t:
                     flipped += 1
 
@@ -357,7 +357,7 @@ def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionabl
     thresholds_df.to_csv(file_name, index_label='index')
 
 
-def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, model_dir, do_print_individual_files = True, file_name = None):
+def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indices, actionable_indices, increasing_actionable_indices, model_dir, do_print_individual_files = True, file_name = None):
     """
     evaluates the model for recourse/performance metrics using the adversarial training algorithm for computing recourse
 
@@ -419,7 +419,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
         
         if y_pred < threshold: #negative pred
             negative_instances += 1
-            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
             if model(x + delta_opt) > threshold:
                 flipped += 1
 
@@ -477,7 +477,7 @@ def write_threshold_info(model_dir, weight, thresholds_file_name, thresholds, f1
 
     thresholds_df.to_csv(thresholds_file_name, index_label='index')
 
-def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_features, \
+def run_evaluate(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, categorical_features, \
     experiment_dir, thresholds = None, lam_init = 0.001, max_lam_steps = 10, \
     data_indices = range(0, 500), only_eval_at_max_f1 = False):
     """
@@ -554,7 +554,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, categorical_feat
     write_threshold_info(model_dir, w, wachter_thresholds_file_name, wachter_thresholds, wachter_f1s, wachter_accs, wachter_precisions, wachter_recalls, wachter_flipped_proportions, wachter_recourse_proportions)
     write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
                     
-def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir, do_print_individual_files = True):
+def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, increasing_actionable_indices, model_dir, do_print_individual_files = True):
     """
     evaluates the model for recourse/performance metrics using the gradient descent algorithm for computing recourse
 
@@ -698,7 +698,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def run(data, actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
+def run(data, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
     """
     runs the main experiment
     trains model & calls function run_evaluate (which runs recourse/performance evaluation on test data using both the adversarial training and gradient descent algorithms for computing recourse)
@@ -720,7 +720,7 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
         if do_train:
             # train the model
             train(model, torch_X_train, torch_y_train, \
-                 torch_X_val, torch_y_val, actionable_indices, experiment_dir, \
+                 torch_X_val, torch_y_val, actionable_indices, increasing_actionable_indices, experiment_dir, \
                   recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr)
             print("DONE TRAINING")
         
@@ -728,13 +728,13 @@ def run(data, actionable_indices, categorical_features, experiment_dir, weights,
             model = load_torch_model(weight_dir, weight)
 
         print("RUNNING EVALUTE")
-        run_evaluate(model, data, w, delta_max, actionable_indices, categorical_features, experiment_dir, lam_init = lam_init, \
+        run_evaluate(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, lam_init = lam_init, \
             data_indices = range(0, 500), thresholds = thresholds_to_eval, max_lam_steps = max_lam_steps, \
             only_eval_at_max_f1 = True)
 
         print("DONE EVALUATING FOR WEIGHT: ", w)
 
-def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, experiment_dir, white_feature_name, \
+def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, increasing_actionable_indices, experiment_dir, white_feature_name, \
     prec_targets = [0.65], lam_init = 0.001, max_lam_steps = 10, data_indices = range(0, 500)):
     """
     evaluates the model for recourse/performance metrics on white and minority subsets of data
@@ -793,7 +793,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
             threshold = all_thresholds[idx]
             threshold = round(threshold, 3)
 
-            our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, white_data, white_labels, w, threshold, delta_max, None, actionable_indices, model_dir, do_print_individual_files = False)
+            our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, white_data, white_labels, w, threshold, delta_max, None, actionable_indices, increasing_actionable_indices, model_dir, do_print_individual_files = False)
             our_thresholds.append(threshold)
             our_precisions.append(our_precision)
             our_flipped_proportions.append(our_flipped_proportion)
@@ -802,7 +802,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
             our_recalls.append(our_recall)
             our_accs.append(our_acc)
 
-            wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, model_dir, do_print_individual_files = False)
+            wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, white_data, white_labels, w, threshold, delta_max, lam_init, max_lam_steps, None, actionable_indices, increasing_actionable_indices, model_dir, do_print_individual_files = False)
             wachter_thresholds.append(threshold)
             wachter_precisions.append(wachter_precision)
             wachter_flipped_proportions.append(wachter_flipped_proportion)
@@ -815,7 +815,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, ex
         write_threshold_info(model_dir, w, our_thresholds_file_name, our_thresholds, our_f1s, our_accs, our_precisions, our_recalls, our_flipped_proportions, our_recourse_proportions)
 
 
-def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, epsilons, alpha, model_dir):
+def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionable_indices, increasing_actionable_indices, epsilons, alpha, model_dir):
     """
     computes threshold upperbounds for PARE guarantees using the gradient descent approximation method of calculating recourse
     evalutes at thresholds in 10 equally spaced increments below that upperbound
@@ -938,7 +938,7 @@ def wachter_compute_threshold_upperbounds(model, dict_data, weight, delta_max, a
             x = test_torch_data[i]              # data point
             
             if model(x).item() < max_t:
-                delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+                delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
                 if (model(x + delta_opt).item()) >= max_t:
                     flipped += 1
 

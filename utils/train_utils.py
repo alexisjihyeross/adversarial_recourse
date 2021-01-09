@@ -10,7 +10,7 @@ import numpy as np
 import os
 import pandas as pd
 
-def calc_delta_opt(model, x, delta_max, actionable_indices):
+def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices):
     """
     calculate the optimal delta using linear program
 
@@ -24,17 +24,31 @@ def calc_delta_opt(model, x, delta_max, actionable_indices):
     loss_fn = torch.nn.BCELoss()
                             
     A_eq = np.empty((0,len(x)), float)
+    A_ub = np.empty((0,len(x)), float)
+
     
     b_eq = []
+    b_ub = []
     
     for idx in range(len(x)):
         if idx not in actionable_indices:
+
+            # makes sure that 1 * the non-actionable features is = 0
             A_temp = np.zeros((1,len(x)))
             A_temp[0, idx] = 1.0
             A_eq = np.append(A_eq, np.array(A_temp), axis=0)
             b_eq.append(0.0)
+
+        if idx in increasing_actionable_indices:
+            # makes sure that -1 * the non-actionable features <= 0
+            # (i.e. stays positive)
+            A_temp = np.zeros((1,len(x)))
+            A_temp[0, idx] = -1.0
+            A_ub = np.append(A_ub, np.array(A_temp), axis=0)
+            b_ub.append(0.0)
     
     b_eq = np.array(b_eq)
+    b_ub = np.array(b_ub)
     
     x.requires_grad = True
     x_loss = loss_fn(model(x), torch.tensor([1.0]).float())
@@ -44,7 +58,7 @@ def calc_delta_opt(model, x, delta_max, actionable_indices):
     bound = (-delta_max, delta_max)
     bounds = [bound]*len(gradient_x_loss)
     
-    res = linprog(c, bounds=bounds, A_eq = A_eq, b_eq = b_eq, method='simplex')
+    res = linprog(c, bounds=bounds, A_ub = A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, method='simplex')
     delta_opt = res.x # the delta value that maximizes the function
 
     return torch.tensor(delta_opt).float()
@@ -182,7 +196,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
 
     return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1
 
-def train(model, X_train, y_train, X_val, y_val, actionable_indices, experiment_dir, \
+def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_actionable_indices, experiment_dir, \
           num_epochs = 12, delta_max = 0.75, batch_size = 10, lr = 0.002, \
           recourse_loss_weight=1):
     """
