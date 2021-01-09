@@ -51,14 +51,14 @@ def process_compas_data():
 
 
     compas_actionable_features = ["age"]
-    compas_actionable_indices = [idx for idx, col in compas_X.columns if col in compas_actionable_features]
+    compas_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_actionable_features]
     assert len(compas_actionable_features) == len(compas_actionable_indices)
 
     print("compas actionable features: ", compas_actionable_features)
     print("compas actionable indices: ", compas_actionable_indices)
 
     compas_increasing_actionable_features = ["age"]
-    compas_increasing_actionable_indices = [idx for idx, col in compas_X.columns if col in compas_increasing_actionable_features]
+    compas_increasing_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_increasing_actionable_features]
     
     print("compas increasing actionable features: ", compas_increasing_actionable_features)
     print("compas increasing actionable indices: ", compas_increasing_actionable_indices)
@@ -110,7 +110,7 @@ def process_adult_data():
 
 
     adult_actionable_features = ["age", "education-num", "hours-per-week"]
-    adult_actionable_indices = [idx for idx, col in adult_X.columns if col in adult_actionable_features]
+    adult_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_actionable_features]
 
     assert len(adult_actionable_indices) == len(adult_actionable_features)
 
@@ -119,7 +119,7 @@ def process_adult_data():
     # adult_actionable_indices = [0, 1, 4]
 
     adult_increasing_actionable_features = ["age, education-num"]
-    adult_increasing_actionable_indices = [idx for idx, col in compas_X.columns if col in adult_increasing_actionable_features]
+    adult_increasing_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_increasing_actionable_features]
     
     print("adult increasing actionable features: ", adult_increasing_actionable_features)
     print("adult increasing actionable indices: ", adult_increasing_actionable_indices)
@@ -180,7 +180,7 @@ def process_bail_data():
             bail_X[col] = (bail_X[col] - bail_X[col].mean(axis=0)) / bail_X[col].std(axis=0)
 
     bail_actionable_features = ["SCHOOL", "RULE"]
-    bail_actionable_indices = [idx for idx, col in bail_X.columns if col in bail_actionable_features]
+    bail_actionable_indices = [idx for idx, col in enumerate(bail_X.columns) if col in bail_actionable_features]
 
     assert len(bail_actionable_indices) == len(bail_actionable_features)
 
@@ -190,7 +190,7 @@ def process_bail_data():
     # bail_actionable_indices = [11, 12, 15]
 
     bail_increasing_actionable_features = ["SCHOOL"]
-    bail_increasing_actionable_indices = [idx for idx, col in compas_X.columns if col in bail_increasing_actionable_features]
+    bail_increasing_actionable_indices = [idx for idx, col in enumerate(bail_X.columns) if col in bail_increasing_actionable_features]
     
     print("bail increasing actionable features: ", bail_increasing_actionable_features)
     print("bail increasing actionable indices: ", bail_increasing_actionable_indices)
