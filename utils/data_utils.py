@@ -118,7 +118,7 @@ def process_adult_data():
     print("adult actionable indices: ", adult_actionable_indices)
     # adult_actionable_indices = [0, 1, 4]
 
-    adult_increasing_actionable_features = ["age, education-num"]
+    adult_increasing_actionable_features = ["age"]
     adult_increasing_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_increasing_actionable_features]
     
     print("adult increasing actionable features: ", adult_increasing_actionable_features)

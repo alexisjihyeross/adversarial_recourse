@@ -709,7 +709,6 @@ def run(data, actionable_indices, increasing_actionable_indices, categorical_fea
     for w in weights:
         weight_dir = experiment_dir + str(w) + "/"
         print("WEIGHT: ", w)
-        print(data['X_train'].values[0])
         model = Model(len(data['X_train'].values[0]))
         
         torch_X_train = torch.from_numpy(data['X_train'].values).float()
