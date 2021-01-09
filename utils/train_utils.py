@@ -294,7 +294,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             loss_fn = torch.nn.BCELoss(weight=weight)
             
             # calculate the weighted combined loss
-            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
             loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
                
 
@@ -352,7 +352,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             y_pred = model(x)
 
             # calculate the weighted combined loss
-            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices)
+            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
 
             # for each threshold, keep track of negative predictions and flipped predictions
             for t_idx, t in enumerate(thresholds):
