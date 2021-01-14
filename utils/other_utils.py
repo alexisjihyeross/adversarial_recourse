@@ -533,7 +533,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, increasing_actio
     for threshold in eval_thresholds:
         threshold = round(threshold, 3)
         print("THR: ", threshold)
-        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, data_indices, actionable_indices, model_dir)
+        our_flipped_proportion, our_precision, our_recourse_fraction, our_f1, our_recall, our_acc = our_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, data_indices, actionable_indices, increasing_actionable_indices, model_dir)
         our_thresholds.append(threshold)
         our_precisions.append(our_precision)
         our_flipped_proportions.append(our_flipped_proportion)
@@ -542,7 +542,7 @@ def run_evaluate(model, data, w, delta_max, actionable_indices, increasing_actio
         our_recalls.append(our_recall)
         our_accs.append(our_acc)
 
-        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, model_dir)
+        wachter_flipped_proportion, wachter_precision, wachter_recourse_fraction, wachter_f1, wachter_recall, wachter_acc = wachter_evaluate(model, data['X_test'], data['y_test'], w, threshold, delta_max, lam_init, max_lam_steps, data_indices, actionable_indices, increasing_actionable_indices, model_dir)
         wachter_thresholds.append(threshold)
         wachter_precisions.append(wachter_precision)
         wachter_flipped_proportions.append(wachter_flipped_proportion)
@@ -698,7 +698,7 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
-def run(data, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
+def run(data, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = False, with_noise = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None):
     """
     runs the main experiment
     trains model & calls function run_evaluate (which runs recourse/performance evaluation on test data using both the adversarial training and gradient descent algorithms for computing recourse)
@@ -720,11 +720,11 @@ def run(data, actionable_indices, increasing_actionable_indices, categorical_fea
             # train the model
             train(model, torch_X_train, torch_y_train, \
                  torch_X_val, torch_y_val, actionable_indices, increasing_actionable_indices, experiment_dir, \
-                  recourse_loss_weight = w, num_epochs = 15, delta_max = delta_max, lr=lr)
+                  recourse_loss_weight = w, num_epochs = 15, with_noise = with_noise, delta_max = delta_max, lr=lr)
             print("DONE TRAINING")
         
         else:
-            model = load_torch_model(weight_dir, weight)
+            model = load_torch_model(weight_dir, w)
 
         print("RUNNING EVALUTE")
         run_evaluate(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, lam_init = lam_init, \
@@ -754,7 +754,7 @@ def run_minority_evaluate(model, dict_data, w, delta_max, actionable_indices, in
     """
     
     model_dir = experiment_dir + str(w) + "/"
-
+ 
     minority_dir = 'minority_exp_fixed_prec/'
     out_dir = model_dir + "test_eval/" + minority_dir 
     if not os.path.exists(out_dir):

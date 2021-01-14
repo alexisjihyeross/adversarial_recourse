@@ -1,8 +1,9 @@
 from utils.data_utils import *
 from utils.train_utils import *
 from utils.other_utils import *
+import argparse
 
-def main(data, delta_max, weights):
+def main(data, delta_max, weights, with_noise = False):
     """
     runs the main experiments in the paper
 
@@ -23,7 +24,10 @@ def main(data, delta_max, weights):
         X, y, actionable_indices, increasing_actionable_indices, categorical_features, _ = process_bail_data()
         white_feature_name = "WHITE"
 
-    experiment_dir = 'results/' + data + '_' + str(delta_max) + '/'
+    if with_noise:
+        experiment_dir = 'results/' + data + '_' + str(delta_max) + '_noise/'
+    else:
+        experiment_dir = 'results/' + data + '_' + str(delta_max) + '/'
 
     data = get_data(X, y)
     write_data(data, experiment_dir)
@@ -31,7 +35,7 @@ def main(data, delta_max, weights):
 
     # ------- MAIN EXPERIMENT -------
     # (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
-    run(data, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, weights, delta_max, do_train = True)
+    run(data, actionable_indices, increasing_actionable_indices, categorical_features, experiment_dir, weights, delta_max, with_noise = with_noise, do_train = True)
 
 
 
@@ -67,6 +71,16 @@ if __name__ == '__main__':
     delta_max = 0.75
     data = "adult" # one of ["adult", "compas", "bail"]
     weights = [0.0, 0.6, 0.7, 0.1, 0.8, 0.2, 0.9, 0.3, 1.0, 0.4, 0.5] # lambda values
+    # with_noise = False
 
-    main(data, delta_max, weights)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-with_noise')
+
+    args = parser.parse_args()
+
+    with_noise = bool(args.with_noise)
+
+    assert with_noise != None
+
+    main(data, delta_max, weights, with_noise = with_noise)
 

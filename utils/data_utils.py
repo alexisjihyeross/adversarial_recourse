@@ -50,14 +50,14 @@ def process_compas_data():
             compas_X[col] = (compas_X[col] - compas_X[col].mean(axis=0)) / compas_X[col].std(axis=0)
 
 
-    compas_actionable_features = ["age"]
+    compas_actionable_features = ["priors_count"]
     compas_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_actionable_features]
     assert len(compas_actionable_features) == len(compas_actionable_indices)
 
     print("compas actionable features: ", compas_actionable_features)
     print("compas actionable indices: ", compas_actionable_indices)
 
-    compas_increasing_actionable_features = ["age"]
+    compas_increasing_actionable_features = []
     compas_increasing_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_increasing_actionable_features]
     
     print("compas increasing actionable features: ", compas_increasing_actionable_features)
@@ -109,7 +109,7 @@ def process_adult_data():
             adult_X[col] = (adult_X[col] - adult_X[col].mean(axis=0)) / adult_X[col].std(axis=0)
 
 
-    adult_actionable_features = ["age", "education-num", "hours-per-week"]
+    adult_actionable_features = ["education-num", "hours-per-week"]
     adult_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_actionable_features]
 
     assert len(adult_actionable_indices) == len(adult_actionable_features)
@@ -118,7 +118,7 @@ def process_adult_data():
     print("adult actionable indices: ", adult_actionable_indices)
     # adult_actionable_indices = [0, 1, 4]
 
-    adult_increasing_actionable_features = ["age"]
+    adult_increasing_actionable_features = ["education-num"]
     adult_increasing_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_increasing_actionable_features]
     
     print("adult increasing actionable features: ", adult_increasing_actionable_features)

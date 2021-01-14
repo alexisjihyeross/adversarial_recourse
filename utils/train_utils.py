@@ -197,7 +197,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
     return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1
 
 def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_actionable_indices, experiment_dir, \
-          num_epochs = 12, delta_max = 0.75, batch_size = 10, lr = 0.002, \
+          num_epochs = 12, delta_max = 0.75, batch_size = 10, lr = 0.002, with_noise = False, \
           recourse_loss_weight=1):
     """
     trains model and writes training stats to file ({}_model_training_info.txt)
@@ -295,10 +295,21 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             
             # calculate the weighted combined loss
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
-            if i == 0:
+
+            if i == 0 or i == 10:
                 print("example delta opt: ", delta_opt)
+
             loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
-               
+
+
+            if with_noise:
+                noise = [0 for i in range(len(x))]
+                for idx in range(len(x)):
+                        if idx in actionable_indices:    
+                            noise[idx] = np.random.normal(0, 0.1)
+
+                loss += combined_loss(model, y_pred, label, delta_opt + torch.tensor(noise).float(), x, loss_fn, recourse_loss_weight=recourse_loss_weight)
+
 
             # take step in direction of gradient every (batch_size) # of instances
             # reset loss to 0
