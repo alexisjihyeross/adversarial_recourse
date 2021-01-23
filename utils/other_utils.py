@@ -160,9 +160,16 @@ def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data
 
     action_set = ActionSet(X_train)
 
+    print("action set: ", action_set)
+
     for feat_idx, feat in enumerate(data):
         if feat_idx not in actionable_indices:
-            action_set[feat].mutable = False
+            # action_set[feat].mutable = False
+            action_set[feat].actionable = False
+        if feat_idx in increasing_actionable_indices:
+            action_set[feat].step_direction = 1
+
+    print("action set: ", action_set)
 
     f = open(file_name, "a")
     print("kernel width: {}".format(kernel_width), file=f)
@@ -196,7 +203,7 @@ def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data
         # subtract bc flipset treats > 0 as positive and < 0 as negative
         intercept = intercept - threshold
 
-        action_set.align(coefficients=coefficients)
+        action_set.set_alignment(coefficients=coefficients)
 
         fb = Flipset(x = sample, action_set = action_set, coefficients = coefficients, intercept = intercept)
 
@@ -635,7 +642,10 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
         mins = sample[0].copy()
         maxs = sample[0].copy()
         for ai in actionable_indices:
-            mins[ai] = mins[ai] - delta_max
+            if ai in increasing_actionable_indices:
+                mins[ai] = mins[ai]
+            else:
+                mins[ai] = mins[ai] - delta_max
             maxs[ai] = maxs[ai] + delta_max
         mins = mins.reshape(1,-1)
         maxs = maxs.reshape(1,-1)

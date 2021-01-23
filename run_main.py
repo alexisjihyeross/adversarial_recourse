@@ -30,7 +30,12 @@ def main(data, delta_max, weights, with_noise = False):
         experiment_dir = 'results/' + data + '_' + str(delta_max) + '/'
 
     data = get_data(X, y)
-    write_data(data, experiment_dir)
+    try: 
+        print("reading data")
+        data = read_data(experiment_dir) # read data if we've already written data
+    except:
+        print("writing data")
+        write_data(data, experiment_dir)
     # data = read_data(experiment_dir) # read data if we've already written data
 
     # ------- MAIN EXPERIMENT -------
@@ -69,18 +74,25 @@ def main(data, delta_max, weights, with_noise = False):
 # EXAMPLE RUN
 if __name__ == '__main__':
     delta_max = 0.75
-    data = "adult" # one of ["adult", "compas", "bail"]
     weights = [0.0, 0.6, 0.7, 0.1, 0.8, 0.2, 0.9, 0.3, 1.0, 0.4, 0.5] # lambda values
+    weights = [0.3, 1.0] # lambda values
+    weights = [0.4, 0.5] # lambda values
+
     # with_noise = False
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-with_noise')
+    parser.add_argument('-data')
 
     args = parser.parse_args()
 
-    with_noise = bool(args.with_noise)
+    with_noise = True if args.with_noise == "True" else False
+    data = args.data
 
     assert with_noise != None
+    assert data != None
+
+    print("data: ", data)
+    print("with noise: ", with_noise)
 
     main(data, delta_max, weights, with_noise = with_noise)
-
