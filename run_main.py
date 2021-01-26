@@ -30,13 +30,13 @@ def main(data, delta_max, weights, with_noise = False):
         experiment_dir = 'results/' + data + '_' + str(delta_max) + '/'
 
     data = get_data(X, y)
-    try: 
-        print("reading data")
-        data = read_data(experiment_dir) # read data if we've already written data
-    except:
+    print("reading data")
+    data = read_data(experiment_dir) # read data if we've already written data
+    if data == None:
+        data = get_data(X, y)
         print("writing data")
         write_data(data, experiment_dir)
-    # data = read_data(experiment_dir) # read data if we've already written data
+        data = read_data(experiment_dir) # read data if we've already written data
 
     # ------- MAIN EXPERIMENT -------
     # (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
@@ -75,8 +75,6 @@ def main(data, delta_max, weights, with_noise = False):
 if __name__ == '__main__':
     delta_max = 0.75
     weights = [0.0, 0.6, 0.7, 0.1, 0.8, 0.2, 0.9, 0.3, 1.0, 0.4, 0.5] # lambda values
-    weights = [0.3, 1.0] # lambda values
-    weights = [0.4, 0.5] # lambda values
 
     # with_noise = False
 

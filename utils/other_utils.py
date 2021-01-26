@@ -14,6 +14,7 @@ from utils.theory_utils import *
 from recourse.action_set import ActionSet
 from recourse.flipset import Flipset
 from lime import lime_tabular
+import json
 
 def load_torch_model(weight_dir, weight):
     """
@@ -387,6 +388,8 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
 
     if file_name == None:
         file_name = test_eval_dir + str(weight) + '_our_' + str(threshold) + '_test.txt'
+    recourses_file_name = test_eval_dir + str(weight) + '_our_' + str(threshold) + "_test_recourses.txt"
+    recourses_file = open(recourses_file_name, "w")
 
     model.eval()
 
@@ -427,8 +430,13 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
         if y_pred < threshold: #negative pred
             negative_instances += 1
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
+
             if model(x + delta_opt) > threshold:
                 flipped += 1
+                recourses_file.write(str(delta_opt.flatten().tolist())+"\n")
+            else:
+                recourses_file.write(str([])+"\n")
+
 
     recourse_fraction = round((flipped + pos_preds)/total_instances, 3)
 
@@ -453,6 +461,7 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
         f.write("test min ({}) baseline accuracy: {}\n".format(min_label, round(np.sum(min_baseline_preds == y_true)/(y_true).shape[0], 3)))
         f.write("test min baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))            
         f.close()    
+    recourses_file.close()
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
         
@@ -585,6 +594,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
         os.makedirs(test_eval_dir)
 
     file_name = test_eval_dir + str(weight) + '_wachter_' + str(threshold) + '_test.txt'
+    recourses_file_name = test_eval_dir + str(weight) + '_wachter_' + str(threshold) + "_test_recourses.txt"
+    recourses_file = open(recourses_file_name, "w")
 
     model.eval()
 
@@ -671,15 +682,18 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                     print("counterfactual proba: ", recourse.cf['proba'])
                     print("normal proba: ", pred_function(model, sample))
                 assert(action <= delta_max).all()
+                recourses_file.write(str(action.flatten().tolist())+"\n")
 
             else:
                 num_no_recourses += 1
                 num_none_returned += 1
+                recourses_file.write(str([])+"\n")
         except UnboundLocalError as e:
             num_no_recourses += 1
             if do_print:
                 print(e)
                 print("no success")
+                recourses_file.write(str(["error"])+"\n")
         except AssertionError as e:
             print("assertion error")
         num_neg_instances += 1
@@ -705,6 +719,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
         print("recourse all proportion: {}".format(recourse_fraction), file=f)
         print("--------\n\n", file=f) 
         f.close()
+
+    recourses_file.close()
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
