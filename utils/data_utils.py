@@ -8,6 +8,16 @@ DATA_DIR = 'data/'
 def get_data_file(data_name):
     return os.path.join(DATA_DIR, '%s.csv' % data_name)
 
+def process_data(data):
+    if data == "compas":
+        return process_compas_data()
+    elif data == "bail":
+        return process_bail_data()
+    elif data == "adult":
+        return process_adult_data()
+    else:
+        raise AssertionError
+
 def process_compas_data():
     """
     processes normalized adult dataset in DATA_DIR
@@ -43,10 +53,14 @@ def process_compas_data():
 
     columns = compas_X.columns
     compas_categorical_names = [columns[i] for i in compas_categorical_features] 
+    means = [0 for i in range(len(compas_X))]
+    std = [1 for i in range(len(compas_X))]
 
     # normalize continuous features
-    for col in compas_X.columns:
+    for col_idx, col in enumerate(compas_X.columns):
         if col not in compas_categorical_names:
+            means[col_idx] = compas_X[col].mean(axis=0)
+            std[col_idx] = compas_X[col].std(axis=0)
             compas_X[col] = (compas_X[col] - compas_X[col].mean(axis=0)) / compas_X[col].std(axis=0)
 
 
@@ -59,11 +73,19 @@ def process_compas_data():
 
     compas_increasing_actionable_features = []
     compas_increasing_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_increasing_actionable_features]
-    
+
+    compas_decreasing_actionable_features = ["priors_count"]
+    compas_decreasing_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_decreasing_actionable_features]
+
     print("compas increasing actionable features: ", compas_increasing_actionable_features)
     print("compas increasing actionable indices: ", compas_increasing_actionable_indices)
 
-    return compas_X, compas_y, compas_actionable_indices, compas_increasing_actionable_indices, compas_categorical_features, compas_categorical_names
+    print("compas decreasing actionable features: ", compas_decreasing_actionable_features)
+    print("compas decreasing actionable indices: ", compas_decreasing_actionable_indices)
+
+    feature_names = compas_X.columns
+
+    return compas_X, compas_y, compas_actionable_indices, compas_increasing_actionable_indices, compas_decreasing_actionable_indices, compas_categorical_features, compas_categorical_names, feature_names, means, std
 
 
 def process_adult_data():
@@ -103,9 +125,14 @@ def process_adult_data():
     columns = adult_X.columns
     adult_categorical_names = [columns[i] for i in adult_categorical_features] 
 
+    means = [0 for i in range(len(adult_X))]
+    std = [1 for i in range(len(adult_X))]
+
     # normalize continuous features
-    for col in adult_X.columns:
+    for col_idx, col in enumerate(adult_X.columns):
         if col not in adult_categorical_names:
+            means[col_idx] = adult_X[col].mean(axis=0)
+            std[col_idx] = adult_X[col].std(axis=0)            
             adult_X[col] = (adult_X[col] - adult_X[col].mean(axis=0)) / adult_X[col].std(axis=0)
 
 
@@ -118,16 +145,25 @@ def process_adult_data():
     print("adult actionable indices: ", adult_actionable_indices)
     # adult_actionable_indices = [0, 1, 4]
 
-    adult_increasing_actionable_features = ["education-num"]
+    adult_increasing_actionable_features = ["education-num", "hours-per-week"]
     adult_increasing_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_increasing_actionable_features]
     
     print("adult increasing actionable features: ", adult_increasing_actionable_features)
     print("adult increasing actionable indices: ", adult_increasing_actionable_indices)
 
-    return adult_X, adult_y, adult_actionable_indices, adult_increasing_actionable_indices, adult_categorical_features, adult_categorical_names
+    adult_decreasing_actionable_features = []
+    adult_decreasing_actionable_indices = [idx for idx, col in enumerate(adult_X.columns) if col in adult_decreasing_actionable_features]
+
+    print("adult decreasing actionable features: ", adult_decreasing_actionable_features)
+    print("adult decreasing actionable indices: ", adult_decreasing_actionable_indices)
 
 
-def process_bail_data():
+    feature_names = adult_X.columns
+
+    return adult_X, adult_y, adult_actionable_indices, adult_increasing_actionable_indices, adult_decreasing_actionable_indices, adult_categorical_features, adult_categorical_names, feature_names, means, std
+
+
+def process_bail_data(subset = "train"):
     """
     processes normalized bail dataset in DATA_DIR (only from bail_train)
 
@@ -136,7 +172,9 @@ def process_bail_data():
 
     """
 
-    data_file = get_data_file("bail_train")
+    print("subset: ", subset)
+
+    data_file = get_data_file("bail_" + subset)
 
     # load and process data
     bail_df = pd.read_csv(data_file)
@@ -173,11 +211,16 @@ def process_bail_data():
     columns = bail_X.columns
     bail_categorical_names = [columns[i] for i in bail_categorical_features] 
 
+    means = [0 for i in range(len(bail_X))]
+    std = [1 for i in range(len(bail_X))]
 
     # normalize continuous features
-    for col in bail_X.columns:
+    for col_idx, col in enumerate(bail_X.columns):
         if col not in bail_categorical_names:
+            means[col_idx] = bail_X[col].mean(axis=0)
+            std[col_idx] = bail_X[col].std(axis=0)    
             bail_X[col] = (bail_X[col] - bail_X[col].mean(axis=0)) / bail_X[col].std(axis=0)
+    
 
     bail_actionable_features = ["SCHOOL", "RULE"]
     bail_actionable_indices = [idx for idx, col in enumerate(bail_X.columns) if col in bail_actionable_features]
@@ -195,9 +238,17 @@ def process_bail_data():
     print("bail increasing actionable features: ", bail_increasing_actionable_features)
     print("bail increasing actionable indices: ", bail_increasing_actionable_indices)
 
-    return bail_X, bail_y, bail_actionable_indices, bail_increasing_actionable_indices, bail_categorical_features, bail_categorical_names
+    bail_decreasing_actionable_features = ["RULE"]
+    bail_decreasing_actionable_indices = [idx for idx, col in enumerate(bail_X.columns) if col in bail_decreasing_actionable_features]
+    
+    print("bail decreasing actionable features: ", bail_decreasing_actionable_features)
+    print("bail decreasing actionable indices: ", bail_decreasing_actionable_indices)
 
-def get_data(X, y, val_size = 0.2): 
+    feature_names = bail_X.columns
+
+    return bail_X, bail_y, bail_actionable_indices, bail_increasing_actionable_indices, bail_decreasing_actionable_indices, bail_categorical_features, bail_categorical_names, feature_names, means, std
+
+def get_data(X, y, X_test = None, y_test = None, val_size = 0.2): 
     """
     splits processed data into train/val/test datasets
 
@@ -208,8 +259,13 @@ def get_data(X, y, val_size = 0.2):
     """
 
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_size)
-    X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=500)
-    
+    if X_test is None and y_test is None:
+        X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=500)
+    else:
+        print("test set provided")
+        # randomly sample 500 instances
+        _, X_test, _, y_test = train_test_split(X_test, y_test, test_size=500)
+
     data = {
         'X_train': X_train,
         'y_train': y_train,

@@ -10,7 +10,7 @@ import numpy as np
 import os
 import pandas as pd
 
-def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices):
+def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices):
     """
     calculate the optimal delta using linear program
 
@@ -32,7 +32,6 @@ def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionabl
     
     for idx in range(len(x)):
         if idx not in actionable_indices:
-
             # makes sure that 1 * the non-actionable features is = 0
             A_temp = np.zeros((1,len(x)))
             A_temp[0, idx] = 1.0
@@ -46,7 +45,15 @@ def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionabl
             A_temp[0, idx] = -1.0
             A_ub = np.append(A_ub, np.array(A_temp), axis=0)
             b_ub.append(0.0)
-    
+
+        if idx in decreasing_actionable_indices:
+            # makes sure that 1 * the non-actionable features <= 0
+            # (i.e. stays negative)
+            A_temp = np.zeros((1,len(x)))
+            A_temp[0, idx] = 1.0
+            A_ub = np.append(A_ub, np.array(A_temp), axis=0)
+            b_ub.append(0.0)
+
     b_eq = np.array(b_eq)
     b_ub = np.array(b_ub)
     
@@ -196,7 +203,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
 
     return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1
 
-def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_actionable_indices, experiment_dir, \
+def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, experiment_dir, \
           num_epochs = 12, delta_max = 0.75, batch_size = 10, lr = 0.002, with_noise = False, \
           recourse_loss_weight=1):
     """
@@ -294,7 +301,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             loss_fn = torch.nn.BCELoss(weight=weight)
             
             # calculate the weighted combined loss
-            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
+            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices)
 
             if i == 0 or i == 10:
                 print("example delta opt: ", delta_opt)
@@ -365,7 +372,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             y_pred = model(x)
 
             # calculate the weighted combined loss
-            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices)
+            delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices)
 
             # for each threshold, keep track of negative predictions and flipped predictions
             for t_idx, t in enumerate(thresholds):
