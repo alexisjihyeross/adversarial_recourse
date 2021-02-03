@@ -19,7 +19,7 @@ def main(dataset, delta_max, weights, with_noise = False):
         # create a test set from data
         X_test, y_test = None, None
     else:
-        X_test, y_test, _, _, _, _, _, _, _ = process_bail_data(subset = "test")
+        X_test, y_test, _, _, _, _, _, _, _, _ = process_bail_data(subset = "test")
         X, y, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, _, feature_names, _, _ = process_bail_data(subset = "train")
 
     if dataset == "adult":

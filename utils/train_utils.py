@@ -39,14 +39,14 @@ def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionabl
             b_eq.append(0.0)
 
         if idx in increasing_actionable_indices:
-            # makes sure that -1 * the non-actionable features <= 0
+            # makes sure that -1 * the actionable features <= 0
             # (i.e. stays positive)
             A_temp = np.zeros((1,len(x)))
             A_temp[0, idx] = -1.0
             A_ub = np.append(A_ub, np.array(A_temp), axis=0)
             b_ub.append(0.0)
 
-        if idx in decreasing_actionable_indices:
+        elif idx in decreasing_actionable_indices:
             # makes sure that 1 * the non-actionable features <= 0
             # (i.e. stays negative)
             A_temp = np.zeros((1,len(x)))
@@ -280,14 +280,14 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
     best_val_loss = 10000000    
     best_thresholds = None
 
-
     for n in range(num_epochs):
 
         epoch_start = time.time()
         train_epoch_loss = 0
 
         print("STARTING epoch: ", n)
-    
+        recourses_file_name = weight_dir + str(recourse_loss_weight) + 'epoch_' + str(n) + '_train_recourses.txt'
+        recourses_file = open(recourses_file_name, "w")
 
         for i in tqdm(range(len(y_train))):
         
@@ -302,9 +302,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             
             # calculate the weighted combined loss
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices)
-
-            if i == 0 or i == 10:
-                print("example delta opt: ", delta_opt)
+            recourses_file.write(str(delta_opt.flatten().tolist())+"\n")
 
             loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
 
@@ -330,7 +328,8 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
                 optimizer.step()
 
                 loss = 0
-        
+        recourses_file.close()
+
         # VAL EVALUATION
         print("TRAIN LOSS FOR EPOCH: ", round(train_epoch_loss, 3))
         model.eval()
@@ -446,5 +445,5 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
         training_file = open(train_file_name, "a")
         training_file.write("-------------------\n\n")
         training_file.close()
-             
+
         model.train()    
