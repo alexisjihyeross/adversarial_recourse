@@ -302,6 +302,10 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             
             # calculate the weighted combined loss
             delta_opt = calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices)
+
+            if i == 0 or i == 10:
+                print("example delta opt: ", delta_opt)
+            
             recourses_file.write(str(delta_opt.flatten().tolist())+"\n")
 
             loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
