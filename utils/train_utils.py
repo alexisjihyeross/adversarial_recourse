@@ -9,6 +9,7 @@ import time
 import numpy as np
 import os
 import pandas as pd
+import math
 
 def calc_delta_opt(model, x, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices):
     """
@@ -271,6 +272,11 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
     training_file.write("num epochs: " + str(num_epochs) + "\n")
     training_file.write("delta max: " + str(delta_max) + "\n")
     training_file.write("recourse weight in loss function: " + str(recourse_loss_weight) + "\n\n")
+
+    training_file.write("actionable indices: " + str(actionable_indices) + "\n")
+    training_file.write("increasing actionable indices: " + str(increasing_actionable_indices) + "\n")
+    training_file.write("decreasing actionable indices: " + str(decreasing_actionable_indices) + "\n\n")
+
     
     training_file.close()
 
@@ -286,7 +292,10 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
         train_epoch_loss = 0
 
         print("STARTING epoch: ", n)
-        recourses_file_name = weight_dir + str(recourse_loss_weight) + 'epoch_' + str(n) + '_train_recourses.txt'
+        train_recourses_dir = weight_dir + "train_recourses/"
+        if not os.path.exists(train_recourses_dir):
+            os.makedirs(train_recourses_dir)
+        recourses_file_name = train_recourses_dir + str(recourse_loss_weight) + '_epoch_' + str(n) + '_train_recourses.txt'
         recourses_file = open(recourses_file_name, "w")
 
         for i in tqdm(range(len(y_train))):
@@ -305,10 +314,18 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
 
             if i == 0 or i == 10:
                 print("example delta opt: ", delta_opt)
-            
+
             recourses_file.write(str(delta_opt.flatten().tolist())+"\n")
 
-            loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
+            if max(abs(delta_opt)) > 0:
+                # print("non-zero recourse")
+                loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=recourse_loss_weight)
+            else:
+                print("zero recourse")
+                print(delta_opt)
+                print(abs(max(delta_opt)))
+                loss += combined_loss(model, y_pred, label, delta_opt, x, loss_fn, recourse_loss_weight=0)
+
 
 
             if with_noise:

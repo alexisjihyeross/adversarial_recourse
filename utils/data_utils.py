@@ -49,12 +49,12 @@ def process_compas_data():
     compas_df['label'] = compas_df.apply(lambda row: 1.0 if row['two_year_recid'] == 0 else 0.0, axis=1)
     compas_y = compas_df['label']
 
-    compas_categorical_features = [3, 4, 5]
+    compas_categorical_features = [4, 5, 6]
 
     columns = compas_X.columns
     compas_categorical_names = [columns[i] for i in compas_categorical_features] 
-    means = [0 for i in range(len(compas_X))]
-    std = [1 for i in range(len(compas_X))]
+    means = [0 for i in range(len(compas_X.iloc[0]))]
+    std = [1 for i in range(len(compas_X.iloc[0]))]
 
     # normalize continuous features
     for col_idx, col in enumerate(compas_X.columns):
@@ -74,7 +74,7 @@ def process_compas_data():
     compas_increasing_actionable_features = []
     compas_increasing_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_increasing_actionable_features]
 
-    compas_decreasing_actionable_features = ["priors_count"]
+    compas_decreasing_actionable_features = []
     compas_decreasing_actionable_indices = [idx for idx, col in enumerate(compas_X.columns) if col in compas_decreasing_actionable_features]
 
     print("compas increasing actionable features: ", compas_increasing_actionable_features)
@@ -125,8 +125,8 @@ def process_adult_data():
     columns = adult_X.columns
     adult_categorical_names = [columns[i] for i in adult_categorical_features] 
 
-    means = [0 for i in range(len(adult_X))]
-    std = [1 for i in range(len(adult_X))]
+    means = [0 for i in range(len(adult_X.iloc[0]))]
+    std = [1 for i in range(len(adult_X.iloc[0]))]
 
     # normalize continuous features
     for col_idx, col in enumerate(adult_X.columns):
@@ -163,7 +163,7 @@ def process_adult_data():
     return adult_X, adult_y, adult_actionable_indices, adult_increasing_actionable_indices, adult_decreasing_actionable_indices, adult_categorical_features, adult_categorical_names, feature_names, means, std
 
 
-def process_bail_data(subset = "train"):
+def process_bail_data(subset = "train", given_means = None, given_std = None):
     """
     processes normalized bail dataset in DATA_DIR (only from bail_train)
 
@@ -211,15 +211,19 @@ def process_bail_data(subset = "train"):
     columns = bail_X.columns
     bail_categorical_names = [columns[i] for i in bail_categorical_features] 
 
-    means = [0 for i in range(len(bail_X))]
-    std = [1 for i in range(len(bail_X))]
+    means = [0 for i in range(len(bail_X.iloc[0]))]
+    std = [1 for i in range(len(bail_X.iloc[0]))]
+
 
     # normalize continuous features
     for col_idx, col in enumerate(bail_X.columns):
         if col not in bail_categorical_names:
             means[col_idx] = bail_X[col].mean(axis=0)
             std[col_idx] = bail_X[col].std(axis=0)    
-            bail_X[col] = (bail_X[col] - bail_X[col].mean(axis=0)) / bail_X[col].std(axis=0)
+            feature_mean = means[col_idx] if given_means is None else given_means[col_idx]
+            feature_std = std[col_idx] if given_std is None else given_std[col_idx]
+
+            bail_X[col] = (bail_X[col] - feature_mean) / feature_std
     
 
     bail_actionable_features = ["SCHOOL", "RULE"]
@@ -238,7 +242,7 @@ def process_bail_data(subset = "train"):
     print("bail increasing actionable features: ", bail_increasing_actionable_features)
     print("bail increasing actionable indices: ", bail_increasing_actionable_indices)
 
-    bail_decreasing_actionable_features = ["RULE"]
+    bail_decreasing_actionable_features = []
     bail_decreasing_actionable_indices = [idx for idx, col in enumerate(bail_X.columns) if col in bail_decreasing_actionable_features]
     
     print("bail decreasing actionable features: ", bail_decreasing_actionable_features)
@@ -246,6 +250,10 @@ def process_bail_data(subset = "train"):
 
     feature_names = bail_X.columns
 
+    if given_means is not None:
+        means = given_means
+    if given_std is not None:
+        std = given_std
     return bail_X, bail_y, bail_actionable_indices, bail_increasing_actionable_indices, bail_decreasing_actionable_indices, bail_categorical_features, bail_categorical_names, feature_names, means, std
 
 def get_data(X, y, X_test = None, y_test = None, val_size = 0.2): 
@@ -257,14 +265,14 @@ def get_data(X, y, X_test = None, y_test = None, val_size = 0.2):
     :returns: dictionary with data
 
     """
-
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_size)
+    random_state = 0
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=val_size, random_state = random_state)
     if X_test is None and y_test is None:
-        X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=500)
+        X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=500, random_state = random_state)
     else:
         print("test set provided")
         # randomly sample 500 instances
-        _, X_test, _, y_test = train_test_split(X_test, y_test, test_size=500)
+        _, X_test, _, y_test = train_test_split(X_test, y_test, test_size=500, random_state = random_state)
 
     data = {
         'X_train': X_train,

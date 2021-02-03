@@ -107,7 +107,7 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
     return coefficients
 
 
-def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, model_dir, kernel_width = 1.5):
+def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, model_dir, kernel_width = 2.0):
     """
     uses LIME linear approximations with the framework by Ustun et al., 2018 to compute recourses
 

@@ -19,8 +19,8 @@ def main(dataset, delta_max, weights, with_noise = False):
         # create a test set from data
         X_test, y_test = None, None
     else:
-        X_test, y_test, _, _, _, _, _, _, _, _ = process_bail_data(subset = "test")
-        X, y, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, _, feature_names, _, _ = process_bail_data(subset = "train")
+        X, y, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, _, feature_names, train_means, train_std = process_bail_data(subset = "train")
+        X_test, y_test, _, _, _, _, _, _, _, _ = process_bail_data(subset = "test", given_means = train_means, given_std = train_std)
 
     if dataset == "adult":
         white_feature_name = "isWhite"
@@ -32,7 +32,7 @@ def main(dataset, delta_max, weights, with_noise = False):
     if with_noise:
         experiment_dir = 'results/' + dataset + '_' + str(delta_max) + '_noise/'
     else:
-        experiment_dir = 'results/' + dataset + '_' + str(delta_max) + '/'
+        experiment_dir = dataset + '_redo/' + dataset + '_' + str(delta_max) + '/'
 
     print("reading data")
     data = read_data(experiment_dir) # read data if we've already written data
@@ -53,7 +53,7 @@ def main(dataset, delta_max, weights, with_noise = False):
 
         # ------- MAIN EXPERIMENT -------
         # (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
-        run(data, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, experiment_dir, [w], delta_max, with_noise = with_noise, do_train = True)
+        run(data, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, experiment_dir, [w], delta_max, with_noise = with_noise, do_train = True, no_constraints = False)
 
 
         model = load_torch_model(weight_dir, w)    
@@ -62,7 +62,7 @@ def main(dataset, delta_max, weights, with_noise = False):
             # EVAL WITH NO CONSTRAINTS (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
             run(data, actionable_indices, [], [], categorical_features, experiment_dir, [w], delta_max, with_noise = with_noise, do_train = False, no_constraints = True)
 
-                    # LIME LINEAR APPROXIMATION (only evaluate at the threshold that maximizes f1 score on val data)
+            # LIME LINEAR APPROXIMATION (only evaluate at the threshold that maximizes f1 score on val data)
             threshold_df = get_threshold_info(weight_dir, w)
             thresholds = list(threshold_df['thresholds'])
             f1s = threshold_df['f1s'] 
@@ -86,7 +86,9 @@ def main(dataset, delta_max, weights, with_noise = False):
 if __name__ == '__main__':
     delta_max = 0.75
     # weights = [0.7, 0.1, 0.9, 0.3,0.5, 1.1, 1.3, 1.5, 1.7, 1.9] # lambda values
-    weights = [0.0, 1.0, 0.2, 0.4, 0.6, 0.8, 1.2, 1.4, 1.6, 1.8, 2.0] # lambda values
+    weights = [1.0, 0.0, 2.0, 0.2, 0.4, 0.6, 0.8, 1.2, 1.4, 1.6, 1.8] # lambda values
+    # weights = [0.05] # lambda values
+
     # weights = [0.0]
 
     # with_noise = False
