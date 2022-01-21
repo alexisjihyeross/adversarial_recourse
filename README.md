@@ -55,7 +55,7 @@ This repo contains two main scripts:
     
     ```bash
     python run_main.py -dataset german -seed 0
-    '''
+    ```
   
     By default, this will store results in `results/`.
   
@@ -63,4 +63,4 @@ This repo contains two main scripts:
   
     ```bash
     python run_causal_evaluation.py -seed 0
-    '''
+    ```
