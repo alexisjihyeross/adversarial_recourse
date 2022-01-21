@@ -27,7 +27,7 @@ crayons==0.3.1
 cryptography==2.2.2
 cycler==0.10.0
 cymem==2.0.3
-dataclasses==0.7
+dataclasses
 decorator==4.3.0
 defusedxml==0.6.0
 dialogflow==1.0.0

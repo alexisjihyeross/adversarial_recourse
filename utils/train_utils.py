@@ -202,7 +202,7 @@ def write_stats_at_threshold(train_file_name, best_model_stats_file_name, model,
         text_file.write("-------------------\n\n")
         text_file.close()
 
-    return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1
+    return val_precision, val_recourse_proportion, val_proportion_flipped, val_f1, val_acc
 
 def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, experiment_dir, \
           num_epochs = 12, delta_max = 0.75, batch_size = 10, lr = 0.002, with_noise = False, \
@@ -298,11 +298,15 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
         recourses_file_name = train_recourses_dir + str(recourse_loss_weight) + '_epoch_' + str(n) + '_train_recourses.txt'
         recourses_file = open(recourses_file_name, "w")
 
+        preds_by_label = {0: 0, 1: 0}
+
         for i in tqdm(range(len(y_train))):
         
             label = y_train[i]
             x = X_train[i]
             y_pred = model(x)
+
+            pred_label = 1 if y_pred.item() > 0.5 else 0
             
             # define loss function, upweight instance if minority class
             weight = torch.tensor([minority_class_weight]) if (label == min_label) else torch.tensor([1.0])
@@ -336,6 +340,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
 
                 loss += combined_loss(model, y_pred, label, delta_opt + torch.tensor(noise).float(), x, loss_fn, recourse_loss_weight=recourse_loss_weight)
 
+            preds_by_label[pred_label] += 1
 
             # take step in direction of gradient every (batch_size) # of instances
             # reset loss to 0
@@ -353,6 +358,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
 
         # VAL EVALUATION
         print("TRAIN LOSS FOR EPOCH: ", round(train_epoch_loss, 3))
+        print("TRAIN PREDS (threshold=0.5): ", preds_by_label)
         model.eval()
 
         # val loss for epoch
@@ -432,6 +438,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
         recourse_proportion_by_threshold = []
         flipped_proportion_by_threshold = []
         f1_by_threshold = []
+        accuracy_by_threshold = []
 
         # for each threshold, compute and record stats
         for t_idx, t in enumerate(best_thresholds):
@@ -439,13 +446,14 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             val_flipped = flipped_epoch_by_threshold[t_idx]
             num_negative = negative_epoch_by_threshold[t_idx]
             num_positive = len(y_true) - num_negative
-            val_precision, val_recourse_proportion, val_flipped_proportion, val_f1 = write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
+            val_precision, val_recourse_proportion, val_flipped_proportion, val_f1, val_acc = write_stats_at_threshold(train_file_name, best_model_stats_file_name, model, X_train, X_val, y_train, y_val, \
                 t, val_flipped, best_epoch, num_negative, num_positive)
 
             precision_by_threshold.append(round(val_precision, 3))
             recourse_proportion_by_threshold.append(val_recourse_proportion)
             flipped_proportion_by_threshold.append(val_flipped_proportion)
             f1_by_threshold.append(val_f1)
+            accuracy_by_threshold.append(val_acc)
 
         # if the best epoch, write information about thresholds and various metrics
         if best_epoch:
@@ -458,6 +466,7 @@ def train(model, X_train, y_train, X_val, y_val, actionable_indices, increasing_
             thresholds_data['flipped_proportion'] = flipped_proportion_by_threshold
             thresholds_data['recourse_proportion'] = recourse_proportion_by_threshold
             thresholds_data['f1s'] = f1_by_threshold
+            thresholds_data['accuracies'] = accuracy_by_threshold
 
             thresholds_df = pd.DataFrame(data=thresholds_data)
             thresholds_df['thresholds'] = thresholds_df['thresholds'].round(3)

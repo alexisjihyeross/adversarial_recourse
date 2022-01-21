@@ -16,6 +16,32 @@ from recourse.flipset import Flipset
 from lime import lime_tabular
 import json
 
+
+def numpy_to_torch(data):
+    torch_data = torch.from_numpy(data.values).float()
+    return torch_data
+
+def recourse_validity(predict_fn, rs, target=1.0, delta_max=None, originals=None):
+    print("computing recourse validity")
+    assert not (delta_max is None and originals is not None) or (delta_max is not None and originals is None)
+    preds = predict_fn(rs)
+    print("predictions: ", preds)
+    if delta_max is None:
+        valid_bools = preds==target
+        print("where recourse is valid:", valid_bools)
+    else:
+        differences = [r - x for r, x in zip(rs, originals)]
+        valid_bools = [pred == target and all([feat_diff <= delta_max for feat_diff in diff]) for pred, diff in zip(preds, differences)]
+        print("where recourse is valid and <= delta_max:", valid_bools)
+    validity = sum(valid_bools)/len(rs)
+    print("validity: ", validity)
+    return validity
+
+def recourse_distance_satisfied(recourses, originals, delta_max=0.75):
+    differences = [r - x for r, x in zip(recourses, originals)]
+    satisfied_indices = [idx for idx, diff in enumerate(differences) if diff <= delta_max]
+    return len(satisfied_indices)
+
 def load_torch_model(weight_dir, weight):
     """
     loads saved model in eval mode
@@ -91,6 +117,13 @@ def predict_as_numpy(model):
         return model(torch.from_numpy(data).float()).detach().numpy()
     return new_predict_proba   
 
+def predict_label(model, threshold):
+    # helper function that creates a wrapper around the model's predict function
+    def new_predict(data):
+        prob_pred = model(torch.from_numpy(data).float()).detach().numpy()
+        return np.array([0.0 if p < threshold else 1.0 for p in prob_pred])
+    return new_predict   
+
 def get_lime_coefficients(lime_exp, categorical_features, num_features):
     # helper function to get LIME coefficients from a lime explanation object
     coefficients = [None] * num_features
@@ -106,8 +139,12 @@ def get_lime_coefficients(lime_exp, categorical_features, num_features):
         coefficients[int_feat] = coef
     return coefficients
 
+def recourse_needed(model, torch_data, threshold):
+    preds = model(torch_data).detach().numpy()
+    neg_pred_indices = [idx for idx, pred in enumerate(preds) if pred < threshold]
+    return neg_pred_indices
 
-def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, model_dir, kernel_width = 2.0):
+def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data_indices, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, model_dir, kernel_width = 1.25):
     """
     uses LIME linear approximations with the framework by Ustun et al., 2018 to compute recourses
 
@@ -167,10 +204,12 @@ def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data
         if feat_idx not in actionable_indices:
             # action_set[feat].mutable = False
             action_set[feat].actionable = False
-        if feat_idx in increasing_actionable_indices:
-            action_set[feat].step_direction = 1
-        if feat_idx in decreasing_actionable_indices:
-            action_set[feat].step_direction = -1
+        else:
+            action_set[feat].actionable = True
+        # if feat_idx in increasing_actionable_indices:
+        #     action_set[feat].step_direction = 1
+        # if feat_idx in decreasing_actionable_indices:
+        #     action_set[feat].step_direction = -1
 
     print("action set: ", action_set)
 
@@ -212,11 +251,19 @@ def lime_linear_evaluate(model, X_train, X_test, y_test, weight, threshold, data
 
         try:
             fb = fb.populate(enumeration_type = 'distinct_subsets', total_items = 1)
-            action = (fb.items[0]['actions'])
-            if pred_fn(sample + action)[0] > threshold:
-                flipped += 1
-        except:
-            print("exception")
+            if len(fb) > 0:
+                action = fb.items[0]
+                action_list = []
+                new_sample = sample.copy()
+                for feat in data.columns:
+                    action_list.append(action[feat])
+                new_sample = np.array(sample + action_list)
+                if pred_fn(new_sample)[0] > threshold:
+                    print("found sample: ", new_sample)
+                    flipped += 1
+        except Exception as e:
+            print("exception: ")
+            print("error:", e)
             num_errors += 1
             continue
     
@@ -362,7 +409,9 @@ def compute_threshold_upperbounds(model, dict_data, weight, delta_max, actionabl
     thresholds_df = pd.DataFrame(data=thresholds_data)
     thresholds_df['threshold_bounds'] = thresholds_df['threshold_bounds'].round(3)
 
-    print(threshold_bounds)
+    print("threshold bounds: ", threshold_bounds)
+
+    print("f1 score: ", test_f1s)
 
     thresholds_df.to_csv(file_name, index_label='index')
 
@@ -383,6 +432,8 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
 
     """
 
+    print("RUNNING OUR EVALUATE")
+    print("data indices:", data_indices)
     test_eval_dir = model_dir + sub_dir
 
     if not os.path.exists(test_eval_dir):
@@ -464,6 +515,8 @@ def our_evaluate(model, X_test, y_test, weight, threshold, delta_max, data_indic
         f.write("test min baseline f1: {}\n\n".format(round(f1_score((y_true).ravel().tolist(), min_baseline_preds), 3)))            
         f.close()    
     recourses_file.close()
+
+    print("DONE RUNNING OUR EVALUATE")
 
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
         
@@ -596,6 +649,9 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     """
 
+    print("RUNNING WACHTER EVALUATE")
+    print("data indices:", data_indices)
+
     test_eval_dir = model_dir + sub_dir
 
     if not os.path.exists(test_eval_dir):
@@ -693,9 +749,8 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
                     print("counterfactual: ", recourse.cf['X'][0])
                     print("counterfactual proba: ", recourse.cf['proba'])
                     print("normal proba: ", pred_function(model, sample))
-                assert(action <= delta_max).all()
                 recourses_file.write(str(action.flatten().tolist())+"\n")
-
+                assert(action <= delta_max).all()
             else:
                 num_no_recourses += 1
                 num_none_returned += 1
@@ -734,16 +789,17 @@ def wachter_evaluate(model, X_test, y_test, weight, threshold, delta_max, lam_in
 
     recourses_file.close()
 
+    print("DONE RUNNING WACHTER EVALUATE")
+
     return flipped_proportion, precision, recourse_fraction, f1, recall, acc
 
 def run(data, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, experiment_dir, weights, delta_max, \
-    do_train = False, with_noise = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None, no_constraints = False):
+    do_train = False, with_noise = False, lam_init = 0.001, max_lam_steps = 10, thresholds_to_eval = None, no_constraints = False, eval_data_indices=range(0, 500), \
+    lr = 0.002, batch_size = 10, num_epochs = 15):
     """
     runs the main experiment
     trains model & calls function run_evaluate (which runs recourse/performance evaluation on test data using both the adversarial training and gradient descent algorithms for computing recourse)
     """
-
-    lr = 0.002 # changed this for compas training
 
     for w in weights:
         weight_dir = experiment_dir + str(w) + "/"
@@ -759,15 +815,15 @@ def run(data, actionable_indices, increasing_actionable_indices, decreasing_acti
             # train the model
             train(model, torch_X_train, torch_y_train, \
                  torch_X_val, torch_y_val, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, experiment_dir, \
-                  recourse_loss_weight = w, num_epochs = 15, with_noise = with_noise, delta_max = delta_max, lr=lr)
+                  recourse_loss_weight = w, num_epochs = num_epochs, with_noise=with_noise, delta_max=delta_max, lr=lr, batch_size=batch_size)
             print("DONE TRAINING")
         
         else:
             model = load_torch_model(weight_dir, w)
 
-        print("RUNNING EVALUTE")
+        print("RUNNING EVALUATE")
         run_evaluate(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, experiment_dir, lam_init = lam_init, \
-            data_indices = range(0, 500), thresholds = thresholds_to_eval, max_lam_steps = max_lam_steps, \
+            data_indices = eval_data_indices, thresholds = thresholds_to_eval, max_lam_steps = max_lam_steps, \
             only_eval_at_max_f1 = True, no_constraints = no_constraints)
 
         print("DONE EVALUATING FOR WEIGHT: ", w)

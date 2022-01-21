@@ -1,3 +1,5 @@
-There are two main scripts:
-run_main.py: This provides code to replicate the main experiments in the paper (described in sections 4.1, 4.2, and 4.3).
-run_nlp.py: This runs the experiment for the NLP case study (described in section 4.4).
+There are three main scripts:
+
+- run_main.py: This provides code to replicate the main experiments in the paper (described in section 4).
+- run_causal_evaluation.py: This runs the evaluation using Karimi et al. (2020) on the german dataset.
+- run_nlp.py: This runs the experiment for the NLP case study (appendix).
