@@ -44,3 +44,23 @@ This repository contains code for our paper, [Learning Models for Actionable Rec
     
   To run the linear approximation experiments, you will also need to download the appropriate optimization software for using the `recourse` library. 
   See [here](https://github.com/ustunb/actionable-recourse#requirements) for more details.
+
+
+## Quick Start
+
+This repo contains two main scripts:
+
+1. `run_main.py`: This provides code to replicate the main experiments in the paper (described in section 4). 
+    To run the main experiments for the german dataset (for one random seed), you can run the following command:
+    
+    ```bash
+    python run_main.py -dataset german -seed 0
+    '''
+  
+    By default, this will store results in `results/`.
+  
+2. `run_causal_evaluation.py`: This runs the evaluation using the causal model from [Karimi et al. (2020)](https://arxiv.org/pdf/2002.06278.pdf) on the german dataset.
+  
+    ```bash
+    python run_causal_evaluation.py -seed 0
+    '''
