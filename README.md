@@ -42,5 +42,5 @@ This repository contains code for our paper, [Learning Models for Actionable Rec
     pip3 install -r requirements.txt
     ```
     
-  To run the linear approximation experiments, you will also need to download the appropriate optimization software for using the ```recourse''' library. 
+  To run the linear approximation experiments, you will also need to download the appropriate optimization software for using the `recourse` library. 
   See [here](https://github.com/ustunb/actionable-recourse#requirements) for more details.
