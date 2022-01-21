@@ -72,38 +72,36 @@ def main(dataset, delta_max, weights, with_noise=False, random_state=0, results_
             num_epochs=num_epochs, batch_size=batch_size)
 
 
-        # model = load_torch_model(weight_dir, w)    
+        model = load_torch_model(weight_dir, w)    
 
-        # if w in [0.0, 0.8]:
-        #     # EVAL WITH NO CONSTRAINTS (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
-        #     run(data, actionable_indices, [], [], categorical_features, experiment_dir, [w], delta_max, with_noise = with_noise, do_train = False, no_constraints = True, eval_data_indices = data_indices,)
+        if w in [0.0, 0.8]:
+            # EVAL WITH NO CONSTRAINTS (training, evaluating recourse/performance metrics using gradient descent and adversarial training algorithms for computing recourse)
+            run(data, actionable_indices, [], [], categorical_features, experiment_dir, [w], delta_max, with_noise = with_noise, do_train = False, no_constraints = True, eval_data_indices = data_indices,)
 
-        #     # LIME LINEAR APPROXIMATION (only evaluate at the threshold that maximizes f1 score on val data)
-        #     threshold_df = get_threshold_info(weight_dir, w)
-        #     thresholds = list(threshold_df['thresholds'])
-        #     f1s = threshold_df['f1s'] 
-        #     eval_thresholds = [thresholds[np.argmax(f1s)]]
-        #     threshold = eval_thresholds[0]
+            # LIME LINEAR APPROXIMATION (only evaluate at the threshold that maximizes f1 score on val data)
+            threshold_df = get_threshold_info(weight_dir, w)
+            thresholds = list(threshold_df['thresholds'])
+            f1s = threshold_df['f1s'] 
+            eval_thresholds = [thresholds[np.argmax(f1s)]]
+            threshold = eval_thresholds[0]
 
-        #     lime_linear_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, weight_dir)
+            lime_linear_evaluate(model, data['X_train'], data['X_test'], data['y_test'], w, threshold, data_indices, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, categorical_features, weight_dir)
 
-        #     # THEORETICAL PARE GUARANTEES (computes metrics at thresholds satisfying theoretical upperbound derived with PARE guarantees)
+            # THEORETICAL PARE GUARANTEES (computes metrics at thresholds satisfying theoretical upperbound derived with PARE guarantees)
 
-        #     epsilons = [0.95] # parameter for theory experiment
-        #     alpha = 0.95 # parameter for theory experiment
-        #     compute_threshold_upperbounds(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, epsilons, alpha, weight_dir)
+            epsilons = [0.95] # parameter for theory experiment
+            alpha = 0.95 # parameter for theory experiment
+            compute_threshold_upperbounds(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, epsilons, alpha, weight_dir)
 
-        # if dataset != "german":
-        #     # MINORITY DISPARITIES (runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function)
-        #     run_minority_evaluate(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
+        if dataset != "german":
+            # MINORITY DISPARITIES (runs wachter + our evaluation for every threshold in the 'WEIGHT_val_thresholds_info.csv' file output by the train function)
+            run_minority_evaluate(model, data, w, delta_max, actionable_indices, increasing_actionable_indices, decreasing_actionable_indices, experiment_dir, white_feature_name, lam_init = 0.001, data_indices = data_indices)
 
 
 # EXAMPLE RUN
 if __name__ == '__main__':
     delta_max = 0.75
-    # weights = [0.0, 0.8, 0.4, 1.2, 1.6, 2.0, 0.2, 0.6, 1.4, 1.8, 1.0] # lambda values
-    # weights = [0.4, 1.2, 1.6, 2.0, 0.2, 0.6, 1.4, 1.8, 1.0] # lambda values
-    weights = [2.4]
+    weights = [0.0, 0.8, 0.4, 1.2, 1.6, 2.0, 0.2, 0.6, 1.4, 1.8, 1.0] # lambda values
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-with_noise')
